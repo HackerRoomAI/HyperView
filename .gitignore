@@ -24,3 +24,4 @@ htmlcov/
 # Local Context (Agent files)
 context/
 CLAUDE.md
+.claude/
