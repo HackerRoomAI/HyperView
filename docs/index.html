@@ -34,6 +34,7 @@
             border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             max-width: 300px;
+            z-index: 100;
         }
         h1 { margin: 0 0 10px 0; font-size: 18px; color: #333; }
         p { margin: 0 0 10px 0; font-size: 14px; color: #666; line-height: 1.4; }
@@ -73,9 +74,130 @@
             background: #e6f4ea;
             color: #137333;
         }
+
+        /* About Overlay Styles */
+        .about-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: #fff;
+            border: 1px solid #ccc;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            font-size: 20px;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #555;
+            transition: all 0.2s;
+            z-index: 100;
+        }
+        .about-btn:hover { background: #f0f0f0; color: #333; }
+
+        .overlay-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s, visibility 0.3s;
+        }
+        .overlay-backdrop.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+        .overlay-content {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            position: relative;
+        }
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #999;
+        }
+        .close-btn:hover { color: #333; }
+        
+        .overlay-content h2 { margin-top: 0; color: #333; }
+        .overlay-content h3 { color: #444; margin-top: 20px; margin-bottom: 10px; font-size: 16px; }
+        .overlay-content p { font-size: 15px; line-height: 1.6; color: #555; margin-bottom: 15px; }
+        
+        .faq-item {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border-left: 4px solid #0066cc;
+        }
+        .faq-item h4 { margin: 0 0 8px 0; color: #0066cc; font-size: 15px; }
+        .faq-item p { margin: 0; font-size: 14px; }
     </style>
 </head>
 <body>
+    <button id="aboutBtn" class="about-btn" title="About HyperView">?</button>
+
+    <div id="aboutOverlay" class="overlay-backdrop">
+        <div class="overlay-content">
+            <button id="closeOverlay" class="close-btn">&times;</button>
+            <h2>Why HyperView?</h2>
+            <p>
+                Modern AI curation tools rely on <strong>Euclidean geometry</strong> (flat space). 
+                But real-world data—like biological taxonomies, social hierarchies, and medical diagnoses—is 
+                complex and hierarchical.
+            </p>
+            <p>
+                When you force this complex data into a flat box, you run out of room. 
+                To fit the "Majority," the math crushes the "Minority" and "Rare" cases together. 
+                We call this <strong>Representation Collapse</strong>.
+            </p>
+
+            <h3>The Solution: Hyperbolic Space</h3>
+            <p>
+                HyperView uses the <strong>Poincaré disk</strong>, a model of hyperbolic geometry where space expands exponentially towards the edge. 
+                This gives "infinite" room for outliers, ensuring they remain distinct and visible.
+            </p>
+
+            <h3>FAQ: Why does this matter?</h3>
+            
+            <div class="faq-item">
+                <h4>The "Hidden Diagnosis" Problem</h4>
+                <p>
+                    Imagine training an AI doctor on 10,000 chest X-rays:
+                    <br>• <strong>9,000 Healthy</strong> (Majority)
+                    <br>• <strong>900 Common Pneumonia</strong> (Minority)
+                    <br>• <strong>100 Rare Early-Stage Tuberculosis</strong> (Rare Subgroup)
+                </p>
+                <p style="margin-top: 10px;">
+                    <strong>In Euclidean Space:</strong> The model runs out of room. It crushes the 100 Tuberculosis cases into the Pneumonia cluster. To the AI, they look like noise. The patient is misdiagnosed.
+                </p>
+                <p style="margin-top: 10px;">
+                    <strong>In HyperView:</strong> The Tuberculosis cases are pushed to the edge. They form a distinct, visible island. You can see them, select them, and ensure the AI learns to save those patients.
+                </p>
+            </div>
+        </div>
+    </div>
+
     <div class="controls">
         <h1>HyperView Interactive Demo</h1>
         <p>
@@ -198,6 +320,7 @@
             );
         }
 
+
         function update() {
             // Animate transition
             const target = isEuclidean ? 1 : 0;
@@ -309,6 +432,29 @@
                 statusBox.innerHTML = "<strong>Hyperbolic Mode:</strong><br>Space expands exponentially.<br>Rare items are distinct.";
                 statusBox.className = "status-box expand";
                 canvas.style.cursor = 'grab';
+            }
+        });
+
+        // About Overlay Logic
+        const aboutBtn = document.getElementById('aboutBtn');
+        const aboutOverlay = document.getElementById('aboutOverlay');
+        const closeOverlay = document.getElementById('closeOverlay');
+
+        function openAbout() {
+            aboutOverlay.classList.add('visible');
+        }
+
+        function closeAbout() {
+            aboutOverlay.classList.remove('visible');
+        }
+
+        aboutBtn.addEventListener('click', openAbout);
+        closeOverlay.addEventListener('click', closeAbout);
+        
+        // Close on click outside
+        aboutOverlay.addEventListener('click', (e) => {
+            if (e.target === aboutOverlay) {
+                closeAbout();
             }
         });
 

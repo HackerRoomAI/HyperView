@@ -21,6 +21,15 @@ Modern AI curation tools rely almost exclusively on Euclidean embeddings (Cosine
 
 As datasets grow, the space fills up. To fit a massive "Majority" group, the embedding model is forced to crush "Minority" subgroups together, a phenomenon we term **Representation Collapse**.
 
+### The "Hidden Diagnosis" Problem (Example)
+
+Imagine training an AI doctor on 10,000 chest X-rays:
+*   **9,000 Healthy** (Majority)
+*   **900 Common Pneumonia** (Minority)
+*   **100 Rare Early-Stage Tuberculosis** (Rare Subgroup)
+
+In **Euclidean space**, the model runs out of room. To fit the 9,000 healthy images, it crushes the 100 Tuberculosis cases into the middle of the Pneumonia cluster. To the AI (and the human curator), the rare cases just look like "noisy" Pneumonia. **The result: The AI fails to diagnose the patients who need help the most.**
+
 HyperView leverages **Hyperbolic Geometry** (specifically the Poincaré disk model), where volume grows **exponentially** ($e^r$). This allows "Minority" and "Rare" groups to be pushed to the edge of the embedding space *without* losing their internal structure or separation.
 
 ## Key Features
