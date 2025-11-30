@@ -3,14 +3,14 @@
 > **HyperView is an open‑source curation engine that lets teams explore, clean, and balance multimodal datasets at million‑sample scale on modest hardware.**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Demo](https://img.shields.io/badge/Live-Interactive%20Demo-red)](https://mnm-matin.github.io/HyperView/)
+[![Demo](https://img.shields.io/badge/Live-Interactive%20Demo-red)](https://HackerRoomAI.github.io/HyperView/)
 
 Instead of flattening hierarchies into Euclidean scatterplots, HyperView uses native **hyperbolic embeddings** and a **Poincaré‑disk interface** to surface long‑tail classes, label drift, and duplicate data.
 
 ---
 
 <p align="center">
-  <a href="https://mnm-matin.github.io/HyperView/">
+  <a href="https://HackerRoomAI.github.io/HyperView/">
     <img src="assets/bias_collapse.png" alt="HyperView Comparison: Euclidean vs Hyperbolic" width="100%">
   </a>
   <br>
@@ -18,7 +18,7 @@ Instead of flattening hierarchies into Euclidean scatterplots, HyperView uses na
 </p>
 
 <p align="center">
-  <a href="https://mnm-matin.github.io/HyperView/" style="font-size: 1.2em; font-weight: bold;">🔴 Try the Interactive Visualization</a>
+  <a href="https://HackerRoomAI.github.io/HyperView/" style="font-size: 1.2em; font-weight: bold;">🔴 Try the Interactive Visualization</a>
 </p>
 
 ---
@@ -57,7 +57,7 @@ This repository serves as a **Showcase** for the HyperView technology stack.
 ### Installation
 
 ```bash
-git clone https://github.com/mnm-matin/HyperView.git
+git clone https://github.com/HackerRoomAI/HyperView.git
 cd HyperView
 pip install -r requirements.txt
 ```
