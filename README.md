@@ -5,16 +5,8 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Demo](https://img.shields.io/badge/Live-Interactive%20Demo-red)](https://HackerRoomAI.github.io/HyperView/)
 
-Instead of flattening hierarchies into Euclidean scatterplots, HyperView uses native **hyperbolic embeddings** and a **Poincaré‑disk interface** to surface long‑tail classes, label drift, and duplicate data.
-
----
-
 <p align="center">
-  <a href="https://HackerRoomAI.github.io/HyperView/">
-    <img src="assets/bias_collapse.png" alt="HyperView Comparison: Euclidean vs Hyperbolic" width="100%">
-  </a>
-  <br>
-  <em>Figure 1: Representation Collapse in Euclidean space vs. Hierarchical Expansion in Hyperbolic space.</em>
+  <img src="assets/hyperview_infographic.png" alt="HyperView: Fairer AI Data Curation with Hyperbolic Geometry" width="100%">
 </p>
 
 <p align="center">

@@ -1,62 +1,54 @@
 # HyperView System Architecture
 
-## The "Hybrid Engine" Approach
+## The Integrated Pipeline Approach
 
-HyperView is designed to solve the "Representation Collapse" problem at scale (1M+ samples). This requires a hybrid architecture that leverages the best tools for each geometric task:
+HyperView is built as a three-stage pipeline that turns raw multimodal data into an interactive, fairness-aware view of a dataset. Each stage uses the tool best suited for the job:
 
-*   **Python (PyTorch/Geoopt):** For differentiable manifold operations (Training the Adapter).
-*   **Rust (Qdrant):** For low-latency retrieval and storage (The "Memory").
-*   **WebGL (Deck.gl):** For rendering the Poincaré disk in the browser (The "Lens").
+*   **Ingestion – Python (PyTorch/Geoopt):** Differentiable manifold operations and training of the Hyperbolic Adapter.
+*   **Storage & Retrieval – Rust (Qdrant):** Low-latency vector search with a custom Poincaré distance metric.
+*   **Visualization – Browser (WebGL/Deck.gl):** GPU-accelerated rendering of the Poincaré disk in the browser.
 
 ## System Diagram
 
-```mermaid
-graph TD
-    subgraph "Ingestion (Python)"
-        A[Raw Data (Images/Text)] -->|CLIP/ResNet| B[Euclidean Vectors]
-        B -->|Hyperbolic Adapter (Geoopt)| C[Hyperbolic Vectors]
-    end
-
-    subgraph "Storage & Retrieval (Rust)"
-        C -->|gRPC| D[Qdrant Vector DB]
-        D -->|Custom Metric| E{Poincaré Distance}
-        E -->|HNSW Index| F[Nearest Neighbors]
-    end
-
-    subgraph "Visualization (Browser)"
-        F -->|JSON/Arrow| G[React Frontend]
-        G -->|Deck.gl Shader| H[Poincaré Disk Plot]
-        H -->|User Interaction| I[Selection/Curation]
-    end
-```
+<p align="center">
+  <img src="../assets/hyperview_architecture.png" alt="HyperView System Architecture: The Integrated Pipeline Approach" width="100%">
+</p>
 
 ## Component Breakdown
 
-### 1. The Hyperbolic Adapter (Python)
-*   **Role:** The "Bridge" between the flat world and the curved world.
-*   **Tech:** `torch`, `geoopt`.
-*   **Function:** Takes standard embeddings (e.g., 512d CLIP vectors) and projects them into the Poincaré ball using the exponential map (`expmap0`). This is where the "expansion" of minority classes happens.
+### 1. Ingestion: Hyperbolic Adapter (Python)
+*   **Role:** The bridge between flat (Euclidean) model embeddings and curved (hyperbolic) space.
+*   **Input:** Raw data (images/text) → standard model embeddings (e.g. CLIP/ResNet vectors).
+*   **Tech:** PyTorch, Geoopt.
+*   **Function:**
+    * Learns a small Hyperbolic Adapter using differentiable manifold operations.
+    * Uses the exponential map (`expmap0`) to project Euclidean vectors into the Poincaré ball.
+    * This is where minority and rare cases are expanded away from the crowded center so they remain distinguishable.
 
-### 2. The Vector Engine (Rust / Qdrant)
-*   **Role:** The "Memory" that stores the expanded space.
-*   **Tech:** Qdrant (Forked/Extended).
-*   **Challenge:** Standard vector DBs only support Dot/Cosine/Euclidean distance.
-*   **Solution:** We implement a custom `PoincareDistance` metric in Rust.
-    *   Formula: $d(u, v) = \text{arccosh}\left(1 + 2 \frac{\|u-v\|^2}{(1-\|u\|^2)(1-\|v\|^2)}\right)$
-    *   This allows us to perform Nearest Neighbor search *respecting the hierarchy*.
+### 2. Storage & Retrieval: Vector Engine (Rust / Qdrant)
+*   **Role:** The memory that stores and retrieves hyperbolic embeddings at scale.
+*   **Tech:** Qdrant (forked/extended in Rust).
+*   **Challenge:** Standard vector DBs only support dot, cosine, or Euclidean distance.
+*   **Solution:**
+    * Implement a custom `PoincareDistance` metric in Rust:
+      $$d(u, v) = \text{arccosh}\left(1 + 2 \frac{\lVert u - v\rVert^2}{(1 - \lVert u\rVert^2)(1 - \lVert v\rVert^2)}\right)$$
+    * Plug this metric into Qdrant’s HNSW index for fast nearest-neighbor search in hyperbolic space.
+    * This allows search results to respect the hierarchy in the data instead of collapsing the long tail.
 
-### 3. The Visualizer (WebGL)
-*   **Role:** The "Lens" that lets humans see the structure.
-*   **Tech:** React, Deck.gl, Custom Shaders.
-*   **Challenge:** Rendering 1M points in the browser is hard. Rendering them in non-Euclidean geometry is harder.
-*   **Solution:** We use a custom WebGL shader that handles the projection. We do *not* project to 2D Euclidean screen coordinates on the CPU. We send the raw hyperbolic coordinates to the GPU, which renders them directly onto the disk.
+### 3. Visualization: Poincaré Disk Viewer (WebGL)
+*   **Role:** The lens that lets humans explore the structure of the dataset.
+*   **Tech:** React, Deck.gl, custom WebGL shaders.
+*   **Challenge:** Rendering 1M points in non-Euclidean geometry directly in the browser.
+*   **Solution:**
+    * Send raw hyperbolic coordinates to the GPU and render them directly onto the Poincaré disk using a custom shader (no CPU-side projection).
+    * Provide pan/zoom/selection so curators can inspect minority clusters, isolate rare subgroups at the boundary, and export curated subsets.
 
-## Data Flow: The "Fairness" Pipeline
+## Data Flow: The Fairness Pipeline
 
-1.  **Ingest:** User uploads a dataset (e.g., Medical Images).
-2.  **Embed:** System generates standard embeddings.
-3.  **Expand:** The Adapter projects them to Hyperbolic space. "Rare" cases move to the edge.
-4.  **Index:** Qdrant stores them.
-5.  **Query:** User selects a "Minority" sample.
-6.  **Search:** Qdrant calculates Poincaré distance. It finds the *true* semantic neighbors, not just the ones crowded nearby in Euclidean space.
-7.  **Visualize:** The UI shows the distinct separation between the minority group and the rare subgroup.
+1.  **Ingest:** User uploads a dataset (e.g. medical images, biodiversity data).
+2.  **Embed:** Standard models (CLIP/ResNet/Whisper) produce Euclidean embeddings.
+3.  **Expand:** The Hyperbolic Adapter projects them into the Poincaré ball; rare cases move towards the boundary instead of being crushed.
+4.  **Index:** Qdrant stores these hyperbolic vectors with the custom Poincaré distance metric.
+5.  **Query:** A user clicks on a minority example or defines a region of interest.
+6.  **Search:** Qdrant returns semantic neighbors according to Poincaré distance, preserving the hierarchy between majority, minority, and rare subgroups.
+7.  **Visualize & Curate:** The browser renders the Poincaré disk, highlighting clusters and long-tail regions so users can see gaps, remove duplicates, and build fairer training sets.

@@ -25,3 +25,6 @@ htmlcov/
 context/
 CLAUDE.md
 .claude/
+
+# Generated assets
+assets/demo_animation_frames/
