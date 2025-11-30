@@ -44,7 +44,7 @@ This repository serves as a **Showcase** for the HyperView technology stack.
 
 *   `poc/bias_demonstration.py`: A simulation script using `geomstats` to mathematically prove the "Representation Collapse" in Euclidean space.
 *   `poc/hyperbolic_adapter.py`: A minimal PyTorch implementation using `geoopt` to project standard Euclidean vectors (e.g., CLIP) into the Poincaré ball.
-*   `public/index.html`: The source code for the interactive WebGL visualization.
+*   `docs/index.html`: The source code for the interactive WebGL visualization.
 *   `docs/architecture.md`: Detailed system design for the full engine.
 
 ## Quick Start
@@ -80,7 +80,7 @@ To run the interactive visualization locally:
 
 ```bash
 python -m http.server 8000
-# Open http://localhost:8000/public/index.html
+# Open http://localhost:8000/docs/index.html
 ```
 
 ## Architecture
