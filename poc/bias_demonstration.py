@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
 import numpy as np
-import geomstats.backend as gs
+import geomstats.backend as gs  # type: ignore
 from geomstats.geometry.poincare_ball import PoincareBall
 
 def generate_data(n_samples, center_r, center_theta, spread, label):
@@ -73,7 +74,7 @@ def main():
     ax.set_title("Euclidean Space (Standard AI)\n'Representation Collapse'", fontsize=14, fontweight='bold')
     
     # Draw Unit Circle for reference
-    circle = plt.Circle((0, 0), 1, color='black', fill=False, linestyle='--', alpha=0.3)
+    circle = mpatches.Circle((0, 0), 1, color='black', fill=False, linestyle='--', alpha=0.3)
     ax.add_artist(circle)
     
     ax.scatter(maj_euc[:, 0], maj_euc[:, 1], c='gray', alpha=0.3, label='Majority (Head)', s=20)
@@ -96,7 +97,7 @@ def main():
     ax.set_title("Hyperbolic Space (HyperView)\n'Hierarchical Expansion'", fontsize=14, fontweight='bold')
     
     # Draw Poincaré Disk Boundary
-    circle = plt.Circle((0, 0), 1, color='black', fill=False, linewidth=2)
+    circle = mpatches.Circle((0, 0), 1, color='black', fill=False, linewidth=2)
     ax.add_artist(circle)
     
     ax.scatter(maj_hyp[:, 0], maj_hyp[:, 1], c='gray', alpha=0.3, label='Majority', s=20)

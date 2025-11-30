@@ -49,17 +49,13 @@ This repository serves as a **Showcase** for the HyperView technology stack.
 
 ## Quick Start
 
-### Prerequisites
-
-*   Python 3.10+
-*   `pip`
-
 ### Installation
 
 ```bash
 git clone https://github.com/HackerRoomAI/HyperView.git
 cd HyperView
-pip install -r requirements.txt
+uv venv
+uv pip install -r requirements.txt
 ```
 
 ### Reproducing the Visuals
@@ -67,19 +63,19 @@ pip install -r requirements.txt
 To generate the comparison figure (Figure 1) locally:
 
 ```bash
-python poc/bias_demonstration.py
+uv run poc/bias_demonstration.py
 ```
 
 To run the hyperbolic adapter demo:
 
 ```bash
-python poc/hyperbolic_adapter.py
+uv run poc/hyperbolic_adapter.py
 ```
 
 To run the interactive visualization locally:
 
 ```bash
-python -m http.server 8000
+uv run python -m http.server 8000
 # Open http://localhost:8000/docs/index.html
 ```
 
@@ -91,6 +87,12 @@ HyperView employs a "Hybrid Engine" approach:
 3.  **Visualization:** WebGL frontend renders the Poincaré disk directly using custom shaders.
 
 See [docs/architecture.md](docs/architecture.md) for details.
+
+## References
+
+*   **[Poincaré Embeddings for Learning Hierarchical Representations](https://arxiv.org/abs/1705.08039)** (Nickel & Kiela, 2017) - The seminal paper demonstrating how hyperbolic space can represent hierarchies with significantly fewer dimensions than Euclidean space.
+*   **[Hyperbolic Neural Networks](https://arxiv.org/abs/1805.09112)** (Ganea et al., 2018) - Extends deep learning operations to hyperbolic space.
+*   **[Excavating AI](https://excavating.ai)** (Crawford & Paglen) - An investigation into the hidden biases and taxonomies within ImageNet.
 
 ## License
 
