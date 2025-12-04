@@ -98,3 +98,30 @@ See [docs/architecture.md](docs/architecture.md) for details.
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Development
+
+### Prerequisites
+- Python 3.9+
+- Node.js 18+
+
+### Setup
+
+1. **Backend**
+   ```bash
+   # Install dependencies
+   pip install -e .
+   
+   # Run the backend server
+   python hyperview/main.py
+   ```
+
+2. **Frontend**
+   ```bash
+   cd frontend
+   npm install
+   npm run dev
+   ```
+
+3. **Access**
+   Open http://localhost:5173 in your browser.
