@@ -113,7 +113,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
    pip install -e .
    
    # Run the backend server
-   python hyperview/main.py
+   python -m hyperview.main
    ```
 
 2. **Frontend**
@@ -125,3 +125,21 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 3. **Access**
    Open http://localhost:5173 in your browser.
+
+### Current Implementation (SCOPE_2)
+
+The current implementation follows the specifications in [SCOPE_2.md](SCOPE_2.md) and provides:
+
+**Core Features:**
+- ✅ **Dual-Panel Layout**: Images in a grid on the left, scatter plot embeddings on the right
+- ✅ **Bidirectional Selection**: Click images to highlight points, or select points to filter images
+- ✅ **Geometry Toggle**: Switch between Euclidean and Hyperbolic (Poincaré disk) projections
+- ✅ **Interactive Tools**: Click selection and lasso selection modes
+- ✅ **Professional UI**: Header, legend, selection indicators, hover effects
+
+**Technology Stack:**
+- **Backend**: FastAPI + LanceDB (embedded vector database)
+- **Frontend**: React 19 + Vite + Deck.gl (WebGL visualization)
+- **State Management**: Zustand (high-performance state sync)
+
+See [IMPLEMENTATION_NOTES.md](IMPLEMENTATION_NOTES.md) for detailed alignment with SCOPE_2.md requirements.
