@@ -5,8 +5,16 @@ import os
 
 DB_PATH = "data/lancedb"
 
-# Weather/scene labels like BDD100K
+# Weather/scene labels like BDD100K with colors
 LABELS = ["clear", "foggy", "overcast", "partly cloudy", "rainy", "snowy"]
+LABEL_COLORS = [
+    (255, 215, 0),     # clear - gold
+    (169, 169, 169),   # foggy - gray
+    (135, 206, 235),   # overcast - sky blue
+    (176, 224, 230),   # partly cloudy - powder blue
+    (70, 130, 180),    # rainy - steel blue
+    (240, 248, 255),   # snowy - alice blue
+]
 
 def generate_clustered_embeddings(num_points, num_clusters):
     """Generate embeddings with realistic cluster structure"""
@@ -72,6 +80,17 @@ def init_db():
 
         db.create_table("images", data, mode="overwrite")
         print(f"Generated {num_points} points with {num_clusters} clusters.")
+        
+        # Create labels table with colors
+        label_info = pd.DataFrame({
+            'label_id': list(range(len(LABELS))),
+            'label_name': LABELS,
+            'color_r': [c[0] for c in LABEL_COLORS],
+            'color_g': [c[1] for c in LABEL_COLORS],
+            'color_b': [c[2] for c in LABEL_COLORS],
+        })
+        db.create_table("labels", label_info, mode="overwrite")
+        print(f"Generated label information for {len(LABELS)} labels.")
 
     return db
 

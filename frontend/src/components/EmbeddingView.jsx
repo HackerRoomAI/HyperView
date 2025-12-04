@@ -207,90 +207,135 @@ const EmbeddingView = () => {
       {/* Toolbar */}
       <div style={{
         position: 'absolute',
-        top: 10,
-        left: 10,
-        background: 'rgba(30, 30, 30, 0.95)',
-        padding: '8px',
+        top: 12,
+        left: 12,
+        background: 'rgba(42, 42, 42, 0.98)',
+        padding: '6px',
         borderRadius: '8px',
         zIndex: 100,
         display: 'flex',
         gap: '4px',
-        border: '1px solid #444'
+        border: '1px solid rgba(255, 255, 255, 0.1)',
+        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)'
       }}>
         {/* Selection Mode */}
         <button
           onClick={() => setSelectionMode('click')}
           style={{
-            background: selectionMode === 'click' ? '#4a9eff' : 'transparent',
+            background: selectionMode === 'click' ? '#4a9eff' : 'rgba(255, 255, 255, 0.05)',
             border: 'none',
             color: 'white',
-            padding: '8px',
-            borderRadius: '4px',
+            padding: '8px 10px',
+            borderRadius: '6px',
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
-            gap: '4px'
+            gap: '4px',
+            transition: 'all 0.15s ease'
           }}
           title="Click to select"
+          onMouseEnter={(e) => {
+            if (selectionMode !== 'click') {
+              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (selectionMode !== 'click') {
+              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
+            }
+          }}
         >
           <MousePointer size={16} />
         </button>
         <button
           onClick={() => setSelectionMode('lasso')}
           style={{
-            background: selectionMode === 'lasso' ? '#4a9eff' : 'transparent',
+            background: selectionMode === 'lasso' ? '#4a9eff' : 'rgba(255, 255, 255, 0.05)',
             border: 'none',
             color: 'white',
-            padding: '8px',
-            borderRadius: '4px',
+            padding: '8px 10px',
+            borderRadius: '6px',
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
-            gap: '4px'
+            gap: '4px',
+            transition: 'all 0.15s ease'
           }}
           title="Lasso select"
+          onMouseEnter={(e) => {
+            if (selectionMode !== 'lasso') {
+              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (selectionMode !== 'lasso') {
+              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
+            }
+          }}
         >
           <Square size={16} />
         </button>
 
-        <div style={{ width: '1px', background: '#444', margin: '0 4px' }} />
+        <div style={{ width: '1px', background: 'rgba(255, 255, 255, 0.15)', margin: '0 6px' }} />
 
         {/* View Mode */}
         <button
           onClick={() => handleViewModeChange('euclidean')}
           style={{
-            background: viewMode === 'euclidean' ? '#444' : 'transparent',
-            border: 'none',
+            background: viewMode === 'euclidean' ? 'rgba(74, 158, 255, 0.2)' : 'rgba(255, 255, 255, 0.05)',
+            border: viewMode === 'euclidean' ? '1px solid #4a9eff' : '1px solid transparent',
             color: 'white',
-            padding: '8px',
-            borderRadius: '4px',
+            padding: '8px 12px',
+            borderRadius: '6px',
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
-            gap: '4px'
+            gap: '6px',
+            transition: 'all 0.15s ease'
           }}
           title="Euclidean View"
+          onMouseEnter={(e) => {
+            if (viewMode !== 'euclidean') {
+              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (viewMode !== 'euclidean') {
+              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
+            }
+          }}
         >
           <Maximize2 size={16} />
-          <span style={{fontSize: '12px'}}>Euclidean</span>
+          <span style={{fontSize: '12px', fontWeight: 500}}>Euclidean</span>
         </button>
         <button
           onClick={() => handleViewModeChange('hyperbolic')}
           style={{
-            background: viewMode === 'hyperbolic' ? '#444' : 'transparent',
-            border: 'none',
+            background: viewMode === 'hyperbolic' ? 'rgba(74, 158, 255, 0.2)' : 'rgba(255, 255, 255, 0.05)',
+            border: viewMode === 'hyperbolic' ? '1px solid #4a9eff' : '1px solid transparent',
             color: 'white',
-            padding: '8px',
-            borderRadius: '4px',
+            padding: '8px 12px',
+            borderRadius: '6px',
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
-            gap: '4px'
+            gap: '6px',
+            transition: 'all 0.15s ease'
           }}
           title="Hyperbolic View (Poincaré Disk)"
+          onMouseEnter={(e) => {
+            if (viewMode !== 'hyperbolic') {
+              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (viewMode !== 'hyperbolic') {
+              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
+            }
+          }}
         >
           <Circle size={16} />
-          <span style={{fontSize: '12px'}}>Hyperbolic</span>
+          <span style={{fontSize: '12px', fontWeight: 500}}>Hyperbolic</span>
         </button>
       </div>
 
@@ -298,28 +343,50 @@ const EmbeddingView = () => {
       {labels && labels.length > 0 && (
         <div style={{
           position: 'absolute',
-          top: 10,
-          right: 10,
-          background: 'rgba(30, 30, 30, 0.95)',
-          padding: '8px 12px',
+          top: 12,
+          right: 12,
+          background: 'rgba(42, 42, 42, 0.98)',
+          padding: '10px 14px',
           borderRadius: '8px',
           color: 'white',
-          fontSize: '10px',
-          border: '1px solid #444',
+          fontSize: '11px',
+          border: '1px solid rgba(255, 255, 255, 0.1)',
           zIndex: 100,
           maxHeight: '400px',
-          overflowY: 'auto'
+          overflowY: 'auto',
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)'
         }}>
+          <div style={{ 
+            marginBottom: '8px', 
+            fontWeight: 600, 
+            fontSize: '12px',
+            color: '#ccc'
+          }}>
+            Categories
+          </div>
           {labels.map((l, i) => (
-            <div key={l.label_id} style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: i < labels.length - 1 ? '3px' : 0 }}>
+            <div key={l.label_id} style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '8px', 
+              marginBottom: i < labels.length - 1 ? '6px' : 0,
+              padding: '2px 0'
+            }}>
               <div style={{
-                width: '8px',
-                height: '8px',
+                width: '10px',
+                height: '10px',
                 borderRadius: '50%',
                 backgroundColor: `rgb(${l.color_r},${l.color_g},${l.color_b})`,
-                flexShrink: 0
+                flexShrink: 0,
+                boxShadow: `0 0 4px rgba(${l.color_r},${l.color_g},${l.color_b},0.5)`
               }} />
-              <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '120px' }}>
+              <span style={{ 
+                whiteSpace: 'nowrap', 
+                overflow: 'hidden', 
+                textOverflow: 'ellipsis', 
+                maxWidth: '140px',
+                fontSize: '11px'
+              }}>
                 {l.label_name.replace(/_/g, ' ')}
               </span>
             </div>
@@ -331,31 +398,44 @@ const EmbeddingView = () => {
       {selectedIds.size > 0 && (
         <div style={{
           position: 'absolute',
-          bottom: 10,
-          left: 10,
-          background: 'rgba(30, 30, 30, 0.95)',
-          padding: '8px 12px',
+          bottom: 12,
+          left: 12,
+          background: 'rgba(42, 42, 42, 0.98)',
+          padding: '10px 14px',
           borderRadius: '8px',
           color: 'white',
-          fontSize: '12px',
-          border: '1px solid #444',
-          zIndex: 100
+          fontSize: '13px',
+          border: '1px solid rgba(255, 255, 255, 0.1)',
+          zIndex: 100,
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px',
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)'
         }}>
-          {selectedIds.size} selected
+          <span>
+            <strong style={{ color: '#4a9eff' }}>{selectedIds.size}</strong> sample{selectedIds.size !== 1 ? 's' : ''} selected
+          </span>
           <button
             onClick={clearSelection}
             style={{
-              marginLeft: '8px',
-              background: '#ff4444',
+              background: 'rgba(255, 68, 68, 0.9)',
               border: 'none',
               color: 'white',
-              padding: '4px 8px',
-              borderRadius: '4px',
+              padding: '6px 12px',
+              borderRadius: '6px',
               cursor: 'pointer',
-              fontSize: '11px'
+              fontSize: '11px',
+              fontWeight: 500,
+              transition: 'all 0.15s ease'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = '#ff4444';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'rgba(255, 68, 68, 0.9)';
             }}
           >
-            Clear
+            Clear Selection
           </button>
         </div>
       )}

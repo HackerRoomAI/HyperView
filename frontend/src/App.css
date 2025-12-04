@@ -6,29 +6,32 @@
   width: 100vw;
   background-color: #121212;
   color: #ffffff;
+  display: flex;
+  flex-direction: column;
 }
 
 .app-container {
   display: flex;
-  height: 100vh;
+  height: calc(100vh - 56px);
   width: 100vw;
   overflow: hidden;
   background-color: #121212;
+  flex: 1;
 }
 
 .panel {
   flex: 1;
   height: 100%;
   overflow: hidden;
-  border-right: 1px solid #333;
 }
 
 .left-panel {
   background-color: #1e1e1e;
   overflow-y: auto;
+  border-right: 2px solid #2a2a2a;
 }
 
 .right-panel {
-  background-color: #111; /* Dark background for embeddings */
+  background-color: #1a1a1a;
   position: relative;
 }
