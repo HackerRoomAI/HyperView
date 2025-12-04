@@ -49,6 +49,22 @@ const EmbeddingView = () => {
     zoom: 1
   });
   const deckRef = useRef(null);
+  
+  // Button styling helpers
+  const getButtonStyle = useCallback((isActive, type = 'tool') => ({
+    background: isActive 
+      ? (type === 'mode' ? 'rgba(74, 158, 255, 0.2)' : '#4a9eff')
+      : 'rgba(255, 255, 255, 0.05)',
+    border: type === 'mode' && isActive ? '1px solid #4a9eff' : '1px solid transparent',
+    color: 'white',
+    padding: type === 'mode' ? '8px 12px' : '8px 10px',
+    borderRadius: '6px',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    gap: type === 'mode' ? '6px' : '4px',
+    transition: 'all 0.15s ease'
+  }), []);
 
   // Get point position based on view mode
   const getPointPosition = useCallback((d) => {
@@ -221,57 +237,17 @@ const EmbeddingView = () => {
         {/* Selection Mode */}
         <button
           onClick={() => setSelectionMode('click')}
-          style={{
-            background: selectionMode === 'click' ? '#4a9eff' : 'rgba(255, 255, 255, 0.05)',
-            border: 'none',
-            color: 'white',
-            padding: '8px 10px',
-            borderRadius: '6px',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '4px',
-            transition: 'all 0.15s ease'
-          }}
+          style={getButtonStyle(selectionMode === 'click', 'tool')}
           title="Click to select"
-          onMouseEnter={(e) => {
-            if (selectionMode !== 'click') {
-              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
-            }
-          }}
-          onMouseLeave={(e) => {
-            if (selectionMode !== 'click') {
-              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
-            }
-          }}
+          className="toolbar-button"
         >
           <MousePointer size={16} />
         </button>
         <button
           onClick={() => setSelectionMode('lasso')}
-          style={{
-            background: selectionMode === 'lasso' ? '#4a9eff' : 'rgba(255, 255, 255, 0.05)',
-            border: 'none',
-            color: 'white',
-            padding: '8px 10px',
-            borderRadius: '6px',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '4px',
-            transition: 'all 0.15s ease'
-          }}
+          style={getButtonStyle(selectionMode === 'lasso', 'tool')}
           title="Lasso select"
-          onMouseEnter={(e) => {
-            if (selectionMode !== 'lasso') {
-              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
-            }
-          }}
-          onMouseLeave={(e) => {
-            if (selectionMode !== 'lasso') {
-              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
-            }
-          }}
+          className="toolbar-button"
         >
           <Square size={16} />
         </button>
@@ -281,58 +257,18 @@ const EmbeddingView = () => {
         {/* View Mode */}
         <button
           onClick={() => handleViewModeChange('euclidean')}
-          style={{
-            background: viewMode === 'euclidean' ? 'rgba(74, 158, 255, 0.2)' : 'rgba(255, 255, 255, 0.05)',
-            border: viewMode === 'euclidean' ? '1px solid #4a9eff' : '1px solid transparent',
-            color: 'white',
-            padding: '8px 12px',
-            borderRadius: '6px',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-            transition: 'all 0.15s ease'
-          }}
+          style={getButtonStyle(viewMode === 'euclidean', 'mode')}
           title="Euclidean View"
-          onMouseEnter={(e) => {
-            if (viewMode !== 'euclidean') {
-              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
-            }
-          }}
-          onMouseLeave={(e) => {
-            if (viewMode !== 'euclidean') {
-              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
-            }
-          }}
+          className="toolbar-button"
         >
           <Maximize2 size={16} />
           <span style={{fontSize: '12px', fontWeight: 500}}>Euclidean</span>
         </button>
         <button
           onClick={() => handleViewModeChange('hyperbolic')}
-          style={{
-            background: viewMode === 'hyperbolic' ? 'rgba(74, 158, 255, 0.2)' : 'rgba(255, 255, 255, 0.05)',
-            border: viewMode === 'hyperbolic' ? '1px solid #4a9eff' : '1px solid transparent',
-            color: 'white',
-            padding: '8px 12px',
-            borderRadius: '6px',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-            transition: 'all 0.15s ease'
-          }}
+          style={getButtonStyle(viewMode === 'hyperbolic', 'mode')}
           title="Hyperbolic View (Poincaré Disk)"
-          onMouseEnter={(e) => {
-            if (viewMode !== 'hyperbolic') {
-              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
-            }
-          }}
-          onMouseLeave={(e) => {
-            if (viewMode !== 'hyperbolic') {
-              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
-            }
-          }}
+          className="toolbar-button"
         >
           <Circle size={16} />
           <span style={{fontSize: '12px', fontWeight: 500}}>Hyperbolic</span>
@@ -428,17 +364,22 @@ const EmbeddingView = () => {
               fontWeight: 500,
               transition: 'all 0.15s ease'
             }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = '#ff4444';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'rgba(255, 68, 68, 0.9)';
-            }}
+            className="clear-button"
           >
             Clear Selection
           </button>
         </div>
       )}
+      
+      {/* Inline styles for hover effects */}
+      <style>{`
+        .toolbar-button:hover {
+          background: rgba(255, 255, 255, 0.15) !important;
+        }
+        .clear-button:hover {
+          background: #ff4444 !important;
+        }
+      `}</style>
     </div>
   );
 };
