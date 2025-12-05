@@ -95,56 +95,10 @@ class EmbeddingComputer:
             pil_image = self._load_rgb_image(sample)
 
         embedding = self._embed_with_model(sample, image=pil_image)
-        if embedding is not None:
-            return embedding
+        if embedding is None:
+            raise RuntimeError(f"Failed to compute embedding for sample {sample.id}")
 
-        if pil_image is None:
-            pil_image = self._load_rgb_image(sample)
-
-        # Fallback: compute from PIL image using numpy-based approach
-        return self._compute_from_pil(pil_image)
-
-    def _compute_from_pil(self, image) -> np.ndarray:
-        """Compute a simple embedding from PIL image.
-
-        This is a fallback when embed_anything can't process the image directly.
-        Uses average color and basic features as a placeholder.
-        """
-        # Resize to consistent size
-        img = image.resize((224, 224), Image.Resampling.LANCZOS)
-        arr = np.array(img, dtype=np.float32) / 255.0
-
-        # Compute simple features
-        features = []
-
-        # Average color per channel
-        features.extend(arr.mean(axis=(0, 1)).flatten())
-
-        # Std per channel
-        features.extend(arr.std(axis=(0, 1)).flatten())
-
-        # Grid features (4x4 grid averages)
-        grid_size = 4
-        h, w = arr.shape[:2]
-        gh, gw = h // grid_size, w // grid_size
-        for i in range(grid_size):
-            for j in range(grid_size):
-                cell = arr[i * gh : (i + 1) * gh, j * gw : (j + 1) * gw]
-                features.extend(cell.mean(axis=(0, 1)).flatten())
-
-        # Pad or truncate to 512 dimensions
-        features = np.array(features)
-        if len(features) < 512:
-            features = np.pad(features, (0, 512 - len(features)))
-        else:
-            features = features[:512]
-
-        # Normalize
-        norm = np.linalg.norm(features)
-        if norm > 0:
-            features = features / norm
-
-        return features
+        return embedding
 
     def compute_batch(
         self,
@@ -185,12 +139,13 @@ class EmbeddingComputer:
 
                 embedding = self._embed_with_model(sample, image=pil_image)
                 if embedding is None:
-                    if pil_image is None:
-                        pil_image = self._load_rgb_image(sample)
-                    embedding = self._compute_from_pil(pil_image)
+                    raise RuntimeError(
+                        f"Failed to compute embedding for sample {sample.id}"
+                    )
 
                 batch_embeddings.append(embedding)
 
             embeddings.extend(batch_embeddings)
 
         return embeddings
+
