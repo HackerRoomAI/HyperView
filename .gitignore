@@ -22,9 +22,24 @@ htmlcov/
 .vscode/
 
 # Local Context (Agent files)
-context/
-CLAUDE.md
 .claude/
+CLAUDE.md
+context/
 
 # Generated assets
 assets/demo_animation_frames/
+*.gif
+
+# Frontend
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+
+# Python package build
+dist/
+build/
+*.egg-info/
+
+# Data cache
+*.hf/
+.cache/

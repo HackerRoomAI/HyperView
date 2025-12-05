@@ -1,52 +1,22 @@
 # HyperView
 
-> **HyperView is an open‑source curation engine that lets teams explore, clean, and balance multimodal datasets at million‑sample scale on modest hardware.**
+> **Open-source dataset curation with hyperbolic embeddings visualization - a FiftyOne alternative.**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Demo](https://img.shields.io/badge/Live-Interactive%20Demo-red)](https://HackerRoomAI.github.io/HyperView/)
 
 <p align="center">
-  <img src="assets/hyperview_infographic.png" alt="HyperView: Fairer AI Data Curation with Hyperbolic Geometry" width="100%">
-</p>
-
-<p align="center">
-  <a href="https://HackerRoomAI.github.io/HyperView/" style="font-size: 1.2em; font-weight: bold;">🔴 Try the Interactive Visualization</a>
+  <img src="assets/hyperview_demo.gif" alt="HyperView Demo" width="100%">
 </p>
 
 ---
 
-## Abstract
+## Features
 
-Modern AI curation tools rely almost exclusively on Euclidean embeddings (Cosine similarity, L2 distance). While effective for flat data, Euclidean space has a fundamental mathematical flaw when dealing with the complex, hierarchical data found in the real world (biology, medical imaging, social demographics): **volume grows polynomially ($r^d$)**.
-
-As datasets grow, the space fills up. To fit a massive "Majority" group, the embedding model is forced to crush "Minority" subgroups together, a phenomenon we term **Representation Collapse**.
-
-### The "Hidden Diagnosis" Problem (Example)
-
-Imagine training an AI doctor on 10,000 chest X-rays:
-*   **9,000 Healthy** (Majority)
-*   **900 Common Pneumonia** (Minority)
-*   **100 Rare Early-Stage Tuberculosis** (Rare Subgroup)
-
-In **Euclidean space**, the model runs out of room. To fit the 9,000 healthy images, it crushes the 100 Tuberculosis cases into the middle of the Pneumonia cluster. To the AI (and the human curator), the rare cases just look like "noisy" Pneumonia. **The result: The AI fails to diagnose the patients who need help the most.**
-
-HyperView leverages **Hyperbolic Geometry** (specifically the Poincaré disk model), where volume grows **exponentially** ($e^r$). This allows "Minority" and "Rare" groups to be pushed to the edge of the embedding space *without* losing their internal structure or separation.
-
-## Key Features
-
-*   **Native Hyperbolic Embeddings:** Utilizes the Poincaré ball model to naturally represent hierarchical data structures without distortion.
-*   **Fairness-Aware Curation:** Mathematically guarantees that long-tail and minority samples remain distinct and retrievable, preventing them from being "crushed" by majority classes.
-*   **Million-Scale Performance:** Designed with a Rust core extending Qdrant with custom non-Euclidean distance metrics (Proof of Concept).
-*   **Hybrid Architecture:** Seamless integration of Python (PyTorch/Geoopt) for model adaptation and WebGL for high-performance browser visualization.
-
-## Repository Structure
-
-This repository serves as a **Showcase** for the HyperView technology stack.
-
-*   `poc/bias_demonstration.py`: A simulation script using `geomstats` to mathematically prove the "Representation Collapse" in Euclidean space.
-*   `poc/hyperbolic_adapter.py`: A minimal PyTorch implementation using `geoopt` to project standard Euclidean vectors (e.g., CLIP) into the Poincaré ball.
-*   `docs/index.html`: The source code for the interactive WebGL visualization.
-*   `docs/architecture.md`: Detailed system design for the full engine.
+- **Dual-Panel UI**: Image grid + scatter plot with bidirectional selection
+- **Euclidean/Hyperbolic Toggle**: Switch between standard 2D UMAP and Poincaré disk visualization
+- **HuggingFace Integration**: Load datasets directly from HuggingFace Hub
+- **Fast Embeddings**: Uses EmbedAnything for CLIP-based image embeddings
+- **FiftyOne-like API**: Familiar workflow for dataset exploration
 
 ## Quick Start
 
@@ -55,46 +25,149 @@ This repository serves as a **Showcase** for the HyperView technology stack.
 ```bash
 git clone https://github.com/HackerRoomAI/HyperView.git
 cd HyperView
-uv venv
-uv pip install -r requirements.txt
+
+# Create virtual environment and install
+uv venv .venv
+uv pip install -e .
 ```
 
-### Reproducing the Visuals
-
-To generate the comparison figure (Figure 1) locally:
+### Run the Demo
 
 ```bash
-uv run poc/bias_demonstration.py
+.venv/bin/python -m hyperview.cli demo --samples 500
 ```
 
-To run the hyperbolic adapter demo:
+This will:
+1. Load 500 samples from CIFAR-100
+2. Compute CLIP embeddings
+3. Generate Euclidean and Hyperbolic visualizations
+4. Start the server at **http://127.0.0.1:5151**
 
-```bash
-uv run poc/hyperbolic_adapter.py
+### Python API
+
+```python
+import hyperview as hv
+
+# Create dataset
+dataset = hv.Dataset("my_dataset")
+
+# Load from HuggingFace
+dataset.add_from_huggingface(
+    "uoft-cs/cifar100",
+    split="train",
+    max_samples=1000
+)
+
+# Or load from local directory
+# dataset.add_images_dir("/path/to/images", label_from_folder=True)
+
+# Compute embeddings and visualization
+dataset.compute_embeddings()
+dataset.compute_visualization()
+
+# Launch the UI
+hv.launch(dataset)  # Opens http://127.0.0.1:5151
 ```
 
-To run the interactive visualization locally:
+### Save and Load Datasets
 
-```bash
-uv run python -m http.server 8000
-# Open http://localhost:8000/docs/index.html
+```python
+# Save dataset with embeddings
+dataset.save("my_dataset.json")
+
+# Load later
+dataset = hv.Dataset.load("my_dataset.json")
+hv.launch(dataset)
 ```
+
+## Why Hyperbolic?
+
+Traditional Euclidean embeddings struggle with hierarchical data. In Euclidean space, volume grows polynomially ($r^d$), causing **Representation Collapse** where minority classes get crushed together.
+
+**Hyperbolic space** (Poincaré disk) has exponential volume growth ($e^r$), naturally preserving hierarchical structure and keeping rare classes distinct.
+
+<p align="center">
+  <img src="assets/hyperview_infographic.png" alt="Euclidean vs Hyperbolic" width="100%">
+</p>
 
 ## Architecture
 
-HyperView employs a "Hybrid Engine" approach:
-1.  **Ingestion:** `HyperbolicAdapter` (Python) projects raw embeddings to the manifold.
-2.  **Storage:** Custom Rust-based vector engine (Qdrant fork) indexes data using Poincaré distance.
-3.  **Visualization:** WebGL frontend renders the Poincaré disk directly using custom shaders.
+```
+hyperview/
+├── src/hyperview/
+│   ├── core/           # Dataset, Sample classes
+│   ├── embeddings/     # EmbedAnything + UMAP + Poincaré projection
+│   └── server/         # FastAPI + static frontend
+├── frontend/           # React/Next.js (compiled to static)
+└── scripts/
+    └── demo.py         # Demo script
+```
 
-See [docs/architecture.md](docs/architecture.md) for details.
+**Tech Stack:**
+- **Backend**: Python, FastAPI, EmbedAnything, UMAP
+- **Frontend**: Next.js 16, React 18, regl-scatterplot, Zustand, Tailwind CSS
+- **Package Manager**: uv
+
+## Development
+
+### Frontend Development (with Hot Reloading)
+
+For the best development experience, run the backend and frontend separately:
+
+**Terminal 1 - Start the Python backend:**
+```bash
+# Create a dataset and start the API server
+.venv/bin/python -c "
+import hyperview as hv
+dataset = hv.Dataset('dev_dataset')
+dataset.add_from_huggingface('uoft-cs/cifar100', max_samples=200)
+dataset.compute_embeddings()
+dataset.compute_visualization()
+hv.launch(dataset, open_browser=False)
+"
+```
+This runs the API on **http://127.0.0.1:5151**
+
+**Terminal 2 - Start the frontend dev server:**
+```bash
+cd frontend
+npm install  # First time only
+npm run dev
+```
+This runs the frontend on **http://localhost:3000** with hot reloading.
+
+Open **http://localhost:3000** in your browser. The frontend automatically proxies `/api/*` requests to the backend at port 5151 (configured in `next.config.ts`).
+
+Now you can:
+- Edit React components and see changes instantly
+- Edit Python backend and restart Terminal 1
+- No need to rebuild/export the frontend during development
+
+### Export Frontend for Production
+
+When you're ready to bundle the frontend into the Python package:
+
+```bash
+./scripts/export_frontend.sh
+```
+
+This compiles the frontend and copies it to `src/hyperview/server/static/`. After this, `hv.launch()` serves the bundled frontend directly from the Python server.
+
+## API Endpoints
+
+| Endpoint | Description |
+|----------|-------------|
+| `GET /api/dataset` | Dataset metadata (name, labels, colors) |
+| `GET /api/samples` | Paginated samples with thumbnails |
+| `GET /api/embeddings` | 2D coordinates (Euclidean + Hyperbolic) |
+| `POST /api/selection` | Sync selection state |
 
 ## References
 
-*   **[Poincaré Embeddings for Learning Hierarchical Representations](https://arxiv.org/abs/1705.08039)** (Nickel & Kiela, 2017) - The seminal paper demonstrating how hyperbolic space can represent hierarchies with significantly fewer dimensions than Euclidean space.
-*   **[Hyperbolic Neural Networks](https://arxiv.org/abs/1805.09112)** (Ganea et al., 2018) - Extends deep learning operations to hyperbolic space.
-*   **[Excavating AI](https://excavating.ai)** (Crawford & Paglen) - An investigation into the hidden biases and taxonomies within ImageNet.
+- [Poincaré Embeddings for Learning Hierarchical Representations](https://arxiv.org/abs/1705.08039) (Nickel & Kiela, 2017)
+- [Hyperbolic Neural Networks](https://arxiv.org/abs/1805.09112) (Ganea et al., 2018)
+- [FiftyOne](https://github.com/voxel51/fiftyone) - Inspiration for the UI/API design
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+MIT License - see [LICENSE](LICENSE) for details.

@@ -1,0 +1,81 @@
+[project]
+name = "hyperview"
+version = "0.1.0"
+description = "Open-source dataset curation with hyperbolic embeddings visualization"
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.10"
+authors = [
+    { name = "HyperView Team" }
+]
+keywords = ["embeddings", "visualization", "hyperbolic", "dataset", "curation", "machine-learning"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Scientific/Engineering :: Visualization",
+]
+
+dependencies = [
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.32.0",
+    "embed-anything>=0.3.0",
+    "numpy>=1.26.0",
+    "umap-learn>=0.5.6",
+    "pillow>=10.0.0",
+    "pydantic>=2.0.0",
+    "aiofiles>=24.0.0",
+    "datasets>=3.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.24.0",
+    "httpx>=0.27.0",
+    "ruff>=0.7.0",
+]
+hyperbolic = [
+    "torch>=2.0.0",
+    "geoopt>=0.5.1",
+]
+
+[project.scripts]
+hyperview = "hyperview.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/merantix/HyperView"
+Documentation = "https://github.com/merantix/HyperView#readme"
+Repository = "https://github.com/merantix/HyperView"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/hyperview"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/src",
+    "/README.md",
+    "/LICENSE",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W", "UP"]
+ignore = ["E501"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
