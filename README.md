@@ -93,7 +93,7 @@ See [docs/architecture.md](docs/architecture.md) for details.
 
 *   **[Poincaré Embeddings for Learning Hierarchical Representations](https://arxiv.org/abs/1705.08039)** (Nickel & Kiela, 2017) - The seminal paper demonstrating how hyperbolic space can represent hierarchies with significantly fewer dimensions than Euclidean space.
 *   **[Hyperbolic Neural Networks](https://arxiv.org/abs/1805.09112)** (Ganea et al., 2018) - Extends deep learning operations to hyperbolic space.
-*   **[Excavating AI](https://excavating.ai)** (Crawford & Paglen) - An investigation into the hidden biases and taxonomies within ImageNet.
+*   **[Compositional Entailment Learning for Hyperbolic Vision-Language Models](https://arxiv.org/abs/2410.06912)** (Pal et al., 2024) - Defines a CLIP vision-language model on hyperbolic space
 
 ## License
 
