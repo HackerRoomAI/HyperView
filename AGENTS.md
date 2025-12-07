@@ -1,3 +1,0 @@
-- make sure to use venv or uv for python.
-- do not execute code like python <script> directly
-- use tmux to run servers and keep note of the sessions
