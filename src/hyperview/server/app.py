@@ -2,12 +2,11 @@
 
 from __future__ import annotations
 
-import os
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
@@ -164,7 +163,8 @@ def create_app(dataset: Dataset | None = None) -> FastAPI:
 
         if not samples:
             raise HTTPException(
-                status_code=400, detail="No embeddings computed. Call compute_visualization() first."
+                status_code=400,
+                detail="No embeddings computed. Call compute_visualization() first.",
             )
 
         return EmbeddingsResponse(

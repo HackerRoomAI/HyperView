@@ -139,13 +139,10 @@ class EmbeddingComputer:
 
                 embedding = self._embed_with_model(sample, image=pil_image)
                 if embedding is None:
-                    raise RuntimeError(
-                        f"Failed to compute embedding for sample {sample.id}"
-                    )
+                    raise RuntimeError(f"Failed to compute embedding for sample {sample.id}")
 
                 batch_embeddings.append(embedding)
 
             embeddings.extend(batch_embeddings)
 
         return embeddings
-

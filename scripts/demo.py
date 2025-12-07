@@ -41,7 +41,6 @@ def main():
     print("Computing visualization (UMAP + Poincare)...")
     dataset.compute_visualization()
 
-
     print(f"Starting server at http://127.0.0.1:{args.port}")
 
     hv.launch(dataset, port=args.port, open_browser=not args.no_browser)

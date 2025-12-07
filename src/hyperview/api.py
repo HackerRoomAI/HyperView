@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import webbrowser
+
 import uvicorn
 
 from hyperview.core.dataset import Dataset

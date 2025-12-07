@@ -137,7 +137,7 @@ class Dataset:
         label_names = None
         if label_key and label_names_key:
             if label_names_key in ds.features:
-                 label_names = ds.features[label_names_key].names
+                label_names = ds.features[label_names_key].names
         elif label_key:
             if hasattr(ds.features[label_key], "names"):
                 label_names = ds.features[label_key].names
@@ -250,10 +250,26 @@ class Dataset:
         """Assign a color to a label."""
         # Use a predefined color palette
         colors = [
-            "#e6194b", "#3cb44b", "#ffe119", "#4363d8", "#f58231",
-            "#911eb4", "#46f0f0", "#f032e6", "#bcf60c", "#fabebe",
-            "#008080", "#e6beff", "#9a6324", "#fffac8", "#800000",
-            "#aaffc3", "#808000", "#ffd8b1", "#000075", "#808080",
+            "#e6194b",
+            "#3cb44b",
+            "#ffe119",
+            "#4363d8",
+            "#f58231",
+            "#911eb4",
+            "#46f0f0",
+            "#f032e6",
+            "#bcf60c",
+            "#fabebe",
+            "#008080",
+            "#e6beff",
+            "#9a6324",
+            "#fffac8",
+            "#800000",
+            "#aaffc3",
+            "#808000",
+            "#ffd8b1",
+            "#000075",
+            "#808080",
         ]
         idx = len(self._label_colors) % len(colors)
         self._label_colors[label] = colors[idx]

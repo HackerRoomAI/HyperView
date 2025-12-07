@@ -115,9 +115,7 @@ class ProjectionEngine:
         mask = radii > max_radius
         if np.any(mask):
             logger.warning(f"Clamping {np.sum(mask)} points to unit disk.")
-            poincare_coords[mask] = (
-                poincare_coords[mask] / radii[mask][:, np.newaxis] * max_radius
-            )
+            poincare_coords[mask] = poincare_coords[mask] / radii[mask][:, np.newaxis] * max_radius
 
         # Center the embeddings in the Poincaré disk
         poincare_coords = self._center_poincare(poincare_coords)

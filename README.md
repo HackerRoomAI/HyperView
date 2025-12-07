@@ -34,6 +34,10 @@ cd HyperView
 uv venv .venv
 source .venv/bin/activate
 uv pip install -e .
+
+# For development (includes pre-commit hooks)
+uv pip install -e ".[dev]"
+pre-commit install
 ```
 
 ### Run the Demo
@@ -153,6 +157,38 @@ When you're ready to bundle the frontend into the Python package:
 ```
 
 This compiles the frontend and copies it to `src/hyperview/server/static/`. After this, `hv.launch()` serves the bundled frontend directly from the Python server.
+
+### Code Quality
+
+The project uses pre-commit hooks to ensure code quality:
+
+```bash
+# Install dev dependencies (includes pre-commit)
+uv pip install -e ".[dev]"
+
+# Install pre-commit hooks
+pre-commit install
+
+# Run manually on all files
+pre-commit run --all-files
+```
+
+**What runs on commit:**
+
+- **Ruff**: Python linting and formatting (configured in [pyproject.toml](pyproject.toml))
+- **ESLint**: Frontend TypeScript/JavaScript linting
+- **Standard checks**: Trailing whitespace, YAML/JSON/TOML validation, large file detection
+
+You can also run checks manually:
+
+```bash
+# Python linting and formatting
+ruff check src/
+ruff format src/
+
+# Frontend linting
+cd frontend && npm run lint
+```
 
 ## API Endpoints
 
