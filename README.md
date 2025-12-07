@@ -5,7 +5,11 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 <p align="center">
-  <img src="assets/hyperview_demo.gif" alt="HyperView Demo" width="100%">
+  <a href="https://youtu.be/XLaa8FHSQtc" target="_blank">
+    <img src="assets/screenshot.png" alt="HyperView Screenshot" width="100%">
+  </a>
+  <br>
+  <a href="https://youtu.be/XLaa8FHSQtc" target="_blank">Watch the Demo Video</a>
 </p>
 
 ---
@@ -26,15 +30,16 @@
 git clone https://github.com/HackerRoomAI/HyperView.git
 cd HyperView
 
-# Create virtual environment and install
+# Install with uv
 uv venv .venv
+source .venv/bin/activate
 uv pip install -e .
 ```
 
 ### Run the Demo
 
 ```bash
-.venv/bin/python -m hyperview.cli demo --samples 500
+hyperview demo --samples 500
 ```
 
 This will:
@@ -116,15 +121,11 @@ For the best development experience, run the backend and frontend separately:
 
 **Terminal 1 - Start the Python backend:**
 ```bash
-# Create a dataset and start the API server
-.venv/bin/python -c "
-import hyperview as hv
-dataset = hv.Dataset('dev_dataset')
-dataset.add_from_huggingface('uoft-cs/cifar100', max_samples=200)
-dataset.compute_embeddings()
-dataset.compute_visualization()
-hv.launch(dataset, open_browser=False)
-"
+# Activate your virtual environment first
+source .venv/bin/activate
+
+# Run the demo script in no-browser mode
+python scripts/demo.py --samples 200 --no-browser
 ```
 This runs the API on **http://127.0.0.1:5151**
 
