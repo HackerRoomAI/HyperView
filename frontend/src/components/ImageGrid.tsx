@@ -17,37 +17,30 @@ const ITEM_HEIGHT = 140;
 
 export function ImageGrid({ samples, onLoadMore, hasMore }: ImageGridProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const { selectedIds, toggleSelection, addToSelection, setHoveredId, hoveredId } = useStore();
+  const { selectedIds, isLassoSelection, toggleSelection, addToSelection, setHoveredId, hoveredId } = useStore();
 
-  // Sort samples so selected ones appear at the top
-  const sortedSamples = useMemo(() => {
-    if (selectedIds.size === 0) return samples;
+  // Filter samples based on selection
+  const filteredSamples = useMemo(() => {
+    // Only filter (hide non-selected) when it's a lasso selection
+    if (isLassoSelection && selectedIds.size > 0) {
+      return samples.filter((sample) => selectedIds.has(sample.id));
+    }
 
-    const selected: Sample[] = [];
-    const unselected: Sample[] = [];
+    // Otherwise, show all samples
+    return samples;
+  }, [samples, selectedIds, isLassoSelection]);
 
-    samples.forEach((sample) => {
-      if (selectedIds.has(sample.id)) {
-        selected.push(sample);
-      } else {
-        unselected.push(sample);
-      }
-    });
-
-    return [...selected, ...unselected];
-  }, [samples, selectedIds]);
-
-  // Calculate rows from sorted samples
-  const rowCount = Math.ceil(sortedSamples.length / COLUMN_COUNT);
+  // Calculate rows from filtered samples
+  const rowCount = Math.ceil(filteredSamples.length / COLUMN_COUNT);
 
   // Create stable row keys based on the sample IDs in each row
   const getRowKey = useCallback(
     (index: number) => {
       const startIndex = index * COLUMN_COUNT;
-      const rowSamples = sortedSamples.slice(startIndex, startIndex + COLUMN_COUNT);
+      const rowSamples = filteredSamples.slice(startIndex, startIndex + COLUMN_COUNT);
       return rowSamples.map((s) => s.id).join("-") || `row-${index}`;
     },
-    [sortedSamples]
+    [filteredSamples]
   );
 
   const virtualizer = useVirtualizer({
@@ -74,29 +67,10 @@ export function ImageGrid({ samples, onLoadMore, hasMore }: ImageGridProps) {
     return () => container.removeEventListener("scroll", handleScroll);
   }, [onLoadMore, hasMore]);
 
-  // Track previous selection to detect changes
-  const prevSelectedIdsRef = useRef<Set<string>>(new Set());
-
-  // Scroll to top and reset virtualizer when selection changes
+  // Reset virtualizer measurements when selection or filter mode changes
   useEffect(() => {
-    const prevIds = prevSelectedIdsRef.current;
-    const currentIds = selectedIds;
-
-    // Check if selection actually changed (not just same set)
-    const selectionChanged =
-      prevIds.size !== currentIds.size ||
-      [...currentIds].some((id) => !prevIds.has(id));
-
-    if (selectionChanged && currentIds.size > 0) {
-      // Reset the virtualizer measurements to force re-render with new data
-      virtualizer.measure();
-      // Scroll to top using virtualizer's method
-      virtualizer.scrollToOffset(0, { behavior: "smooth" });
-    }
-
-    // Update the ref with a new Set copy
-    prevSelectedIdsRef.current = new Set(currentIds);
-  }, [selectedIds, virtualizer]);
+    virtualizer.measure();
+  }, [selectedIds, isLassoSelection, virtualizer]);
 
   const handleClick = useCallback(
     (sample: Sample, event: React.MouseEvent) => {
@@ -104,16 +78,16 @@ export function ImageGrid({ samples, onLoadMore, hasMore }: ImageGridProps) {
         // Multi-select with Cmd/Ctrl
         toggleSelection(sample.id);
       } else if (event.shiftKey && selectedIds.size > 0) {
-        // Range select with Shift
+        // Range select with Shift - use original samples array, not filtered
         const selectedArray = Array.from(selectedIds);
         const lastSelected = selectedArray[selectedArray.length - 1];
-        const lastIndex = sortedSamples.findIndex((s) => s.id === lastSelected);
-        const currentIndex = sortedSamples.findIndex((s) => s.id === sample.id);
+        const lastIndex = samples.findIndex((s) => s.id === lastSelected);
+        const currentIndex = samples.findIndex((s) => s.id === sample.id);
 
         if (lastIndex !== -1 && currentIndex !== -1) {
           const start = Math.min(lastIndex, currentIndex);
           const end = Math.max(lastIndex, currentIndex);
-          const rangeIds = sortedSamples.slice(start, end + 1).map((s) => s.id);
+          const rangeIds = samples.slice(start, end + 1).map((s) => s.id);
           addToSelection(rangeIds);
         }
       } else {
@@ -123,7 +97,7 @@ export function ImageGrid({ samples, onLoadMore, hasMore }: ImageGridProps) {
         useStore.getState().setSelectedIds(newSet);
       }
     },
-    [sortedSamples, selectedIds, toggleSelection, addToSelection]
+    [samples, selectedIds, toggleSelection, addToSelection]
   );
 
   const items = virtualizer.getVirtualItems();
@@ -135,10 +109,17 @@ export function ImageGrid({ samples, onLoadMore, hasMore }: ImageGridProps) {
         <div className="flex items-center gap-2">
           <span className="text-sm font-medium">Samples</span>
           <span className="text-xs text-text-muted">
-            {sortedSamples.length} items
-            {selectedIds.size > 0 && ` (${selectedIds.size} selected)`}
+            {selectedIds.size > 0 ? `${selectedIds.size} selected` : `${filteredSamples.length} items`}
           </span>
         </div>
+        {selectedIds.size > 0 && (
+          <button
+            onClick={() => useStore.getState().setSelectedIds(new Set())}
+            className="px-2 py-1 text-xs text-text-muted hover:text-text hover:bg-surface rounded transition-colors"
+          >
+            Clear Selection
+          </button>
+        )}
       </div>
 
       {/* Grid Container */}
@@ -153,7 +134,7 @@ export function ImageGrid({ samples, onLoadMore, hasMore }: ImageGridProps) {
           {items.map((virtualRow) => {
             const rowIndex = virtualRow.index;
             const startIndex = rowIndex * COLUMN_COUNT;
-            const rowSamples = sortedSamples.slice(startIndex, startIndex + COLUMN_COUNT);
+            const rowSamples = filteredSamples.slice(startIndex, startIndex + COLUMN_COUNT);
 
             return (
               <div
@@ -243,6 +224,13 @@ export function ImageGrid({ samples, onLoadMore, hasMore }: ImageGridProps) {
             );
           })}
         </div>
+      </div>
+
+      {/* Instructions footer */}
+      <div className="px-3 py-2 text-xs text-text-muted border-t border-border bg-surface-light">
+        <span className="opacity-70">
+          Click to select • Cmd/Ctrl+click to multi-select • Shift+click for range
+        </span>
       </div>
     </div>
   );

@@ -30,6 +30,8 @@ class Dataset:
         self._embedding_computer = None
         self._projection_engine = None
         self._label_colors: dict[str, str] = {}
+        self._current_embedding_model: str = "clip-vit-base-patch32"
+        self._data_type: str = "image"  # Default to image data type
 
     def __len__(self) -> int:
         return len(self._samples)
@@ -177,21 +179,25 @@ class Dataset:
 
     def compute_embeddings(
         self,
-        model: str = "clip",
+        model: str | None = None,
         batch_size: int = 32,
         show_progress: bool = True,
     ) -> None:
         """Compute embeddings for all samples.
 
         Args:
-            model: Embedding model to use ('clip' supported).
+            model: Embedding model to use (if None, uses current model).
             batch_size: Batch size for processing.
             show_progress: Whether to show progress bar.
         """
         from hyperview.embeddings.compute import EmbeddingComputer
 
+        if model is not None:
+            self._current_embedding_model = model
+            self._embedding_computer = None  # Reset to reinitialize with new model
+
         if self._embedding_computer is None:
-            self._embedding_computer = EmbeddingComputer(model=model)
+            self._embedding_computer = EmbeddingComputer(model=self._current_embedding_model)
 
         samples = list(self._samples.values())
         embeddings = self._embedding_computer.compute_batch(
@@ -200,6 +206,49 @@ class Dataset:
 
         for sample, embedding in zip(samples, embeddings):
             sample.embedding = embedding.tolist()
+
+    def set_embedding_model(self, model: str) -> None:
+        """Set the current embedding model.
+
+        Args:
+            model: Embedding model to use.
+        """
+        from hyperview.embeddings.compute import EmbeddingComputer
+
+        if model not in EmbeddingComputer.SUPPORTED_MODELS:
+            raise ValueError(
+                f"Unsupported model: {model}. "
+                f"Supported models: {list(EmbeddingComputer.SUPPORTED_MODELS.keys())}"
+            )
+        self._current_embedding_model = model
+        self._embedding_computer = None  # Reset to reinitialize with new model
+
+    def get_current_embedding_model(self) -> str:
+        """Get the current embedding model.
+
+        Returns:
+            The current embedding model name.
+        """
+        return self._current_embedding_model
+
+    def get_data_type(self) -> str:
+        """Get the data type of this dataset.
+
+        Returns:
+            The data type ('image', 'text', 'audio', etc.).
+        """
+        return self._data_type
+
+    def get_available_embedding_models(self) -> dict[str, dict[str, str]]:
+        """Get available embedding models for this dataset's data type.
+
+        Returns:
+            Dictionary of model names to their configurations.
+        """
+        from hyperview.embeddings.compute import EmbeddingComputer
+
+        # Return only models that support this dataset's data type
+        return EmbeddingComputer.get_models_for_data_type(self._data_type)
 
     def compute_visualization(
         self,

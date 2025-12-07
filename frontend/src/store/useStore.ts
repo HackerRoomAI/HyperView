@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { DatasetInfo, EmbeddingsData, Sample, ViewMode } from "@/types";
+import type { DatasetInfo, EmbeddingsData, EmbeddingModelInfo, Sample, ViewMode } from "@/types";
 
 interface AppState {
   // Dataset info
@@ -23,7 +23,8 @@ interface AppState {
 
   // Selection
   selectedIds: Set<string>;
-  setSelectedIds: (ids: Set<string>) => void;
+  isLassoSelection: boolean;
+  setSelectedIds: (ids: Set<string>, isLasso?: boolean) => void;
   toggleSelection: (id: string) => void;
   addToSelection: (ids: string[]) => void;
   clearSelection: () => void;
@@ -47,6 +48,14 @@ interface AppState {
   // UI state
   showLabels: boolean;
   setShowLabels: (show: boolean) => void;
+
+  // Embedding models
+  availableModels: Record<string, EmbeddingModelInfo> | null;
+  currentModel: string | null;
+  setAvailableModels: (models: Record<string, EmbeddingModelInfo>) => void;
+  setCurrentModel: (model: string) => void;
+  isComputingEmbeddings: boolean;
+  setIsComputingEmbeddings: (computing: boolean) => void;
 }
 
 export const useStore = create<AppState>((set, get) => ({
@@ -80,7 +89,8 @@ export const useStore = create<AppState>((set, get) => ({
 
   // Selection
   selectedIds: new Set<string>(),
-  setSelectedIds: (ids) => set({ selectedIds: ids }),
+  isLassoSelection: false,
+  setSelectedIds: (ids, isLasso = false) => set({ selectedIds: ids, isLassoSelection: isLasso }),
   toggleSelection: (id) =>
     set((state) => {
       const newSet = new Set(state.selectedIds);
@@ -89,15 +99,17 @@ export const useStore = create<AppState>((set, get) => ({
       } else {
         newSet.add(id);
       }
-      return { selectedIds: newSet };
+      // Manual selection from image grid, not lasso
+      return { selectedIds: newSet, isLassoSelection: false };
     }),
   addToSelection: (ids) =>
     set((state) => {
       const newSet = new Set(state.selectedIds);
       ids.forEach((id) => newSet.add(id));
-      return { selectedIds: newSet };
+      // Manual selection from image grid, not lasso
+      return { selectedIds: newSet, isLassoSelection: false };
     }),
-  clearSelection: () => set({ selectedIds: new Set<string>() }),
+  clearSelection: () => set({ selectedIds: new Set<string>(), isLassoSelection: false }),
 
   // Hover
   hoveredId: null,
@@ -118,4 +130,12 @@ export const useStore = create<AppState>((set, get) => ({
   // UI state
   showLabels: true,
   setShowLabels: (show) => set({ showLabels: show }),
+
+  // Embedding models
+  availableModels: null,
+  currentModel: null,
+  setAvailableModels: (models) => set({ availableModels: models }),
+  setCurrentModel: (model) => set({ currentModel: model }),
+  isComputingEmbeddings: false,
+  setIsComputingEmbeddings: (computing) => set({ isComputingEmbeddings: computing }),
 }));

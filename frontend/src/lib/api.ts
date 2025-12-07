@@ -1,4 +1,4 @@
-import type { DatasetInfo, EmbeddingsData, Sample, SamplesResponse } from "@/types";
+import type { DatasetInfo, EmbeddingsData, EmbeddingModelsResponse, Sample, SamplesResponse } from "@/types";
 
 const API_BASE = process.env.NODE_ENV === "development" ? "http://127.0.0.1:5151" : "";
 
@@ -59,4 +59,36 @@ export async function fetchSamplesBatch(sampleIds: string[]): Promise<Sample[]> 
   }
   const data = await res.json();
   return data.samples;
+}
+
+export async function fetchEmbeddingModels(): Promise<EmbeddingModelsResponse> {
+  const res = await fetch(`${API_BASE}/api/embedding-models`);
+  if (!res.ok) {
+    throw new Error(`Failed to fetch embedding models: ${res.statusText}`);
+  }
+  return res.json();
+}
+
+export async function setEmbeddingModel(model: string): Promise<{ status: string; model: string; message: string }> {
+  const res = await fetch(`${API_BASE}/api/embedding-models`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ model }),
+  });
+  if (!res.ok) {
+    throw new Error(`Failed to set embedding model: ${res.statusText}`);
+  }
+  return res.json();
+}
+
+export async function computeEmbeddings(batchSize: number = 32): Promise<{ status: string; message: string }> {
+  const res = await fetch(`${API_BASE}/api/compute-embeddings?batch_size=${batchSize}`, {
+    method: "POST",
+  });
+  if (!res.ok) {
+    throw new Error(`Failed to compute embeddings: ${res.statusText}`);
+  }
+  return res.json();
 }

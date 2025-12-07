@@ -21,12 +21,73 @@ from hyperview.core.sample import Sample
 class EmbeddingComputer:
     """Compute embeddings for images using EmbedAnything."""
 
-    def __init__(self, model: str = "clip"):
+    # Supported embedding models for images
+    # These models work well with image data (photos, natural images)
+    SUPPORTED_MODELS = {
+        "clip-vit-base-patch32": {
+            "model_id": "openai/clip-vit-base-patch32",
+            "which_model": WhichModel.Clip,
+            "display_name": "CLIP ViT-B/32",
+            "description": "Fast, general-purpose vision model (512-dim)",
+            "data_types": ["image"],
+        },
+        "clip-vit-base-patch16": {
+            "model_id": "openai/clip-vit-base-patch16",
+            "which_model": WhichModel.Clip,
+            "display_name": "CLIP ViT-B/16",
+            "description": "Higher resolution, better quality (512-dim)",
+            "data_types": ["image"],
+        },
+        "clip-vit-large-patch14": {
+            "model_id": "openai/clip-vit-large-patch14",
+            "which_model": WhichModel.Clip,
+            "display_name": "CLIP ViT-L/14",
+            "description": "Best quality for general images (768-dim)",
+            "data_types": ["image"],
+        },
+        "jina-clip-v1": {
+            "model_id": "jinaai/jina-clip-v1",
+            "which_model": WhichModel.Clip,
+            "display_name": "Jina CLIP v1",
+            "description": "Multilingual, supports 89 languages (768-dim)",
+            "data_types": ["image"],
+        },
+        "siglip-base-patch16": {
+            "model_id": "google/siglip-base-patch16-224",
+            "which_model": WhichModel.Clip,
+            "display_name": "SigLIP Base",
+            "description": "Improved zero-shot classification (768-dim)",
+            "data_types": ["image"],
+        },
+    }
+
+    @classmethod
+    def get_models_for_data_type(cls, data_type: str) -> dict[str, dict]:
+        """Get models that support a specific data type.
+
+        Args:
+            data_type: Type of data ('image', 'text', 'audio', etc.)
+
+        Returns:
+            Dictionary of model names to their configurations.
+        """
+        return {
+            name: config
+            for name, config in cls.SUPPORTED_MODELS.items()
+            if data_type in config.get("data_types", [])
+        }
+
+    def __init__(self, model: str = "clip-vit-base-patch32"):
         """Initialize the embedding computer.
 
         Args:
-            model: Model to use for embeddings ('clip' supported).
+            model: Model to use for embeddings (see SUPPORTED_MODELS).
         """
+        if model not in self.SUPPORTED_MODELS:
+            raise ValueError(
+                f"Unsupported model: {model}. "
+                f"Supported models: {list(self.SUPPORTED_MODELS.keys())}"
+            )
         self.model_name = model
         self._model = None
         self._initialized = False
@@ -36,10 +97,10 @@ class EmbeddingComputer:
         if self._initialized:
             return
 
-        # Use CLIP model for image embeddings
+        model_config = self.SUPPORTED_MODELS[self.model_name]
         self._model = EmbeddingModel.from_pretrained_hf(
-            WhichModel.Clip,
-            model_id="openai/clip-vit-base-patch32",
+            model_config["which_model"],
+            model_id=model_config["model_id"],
         )
         self._embed_anything = embed_anything
         self._initialized = True

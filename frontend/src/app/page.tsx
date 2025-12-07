@@ -3,7 +3,7 @@
 import { useEffect, useCallback, useState } from "react";
 import { Header, ImageGrid, ScatterPanel } from "@/components";
 import { useStore } from "@/store/useStore";
-import { fetchDataset, fetchSamples, fetchEmbeddings, fetchSamplesBatch } from "@/lib/api";
+import { fetchDataset, fetchSamples, fetchEmbeddings, fetchSamplesBatch, fetchEmbeddingModels } from "@/lib/api";
 
 const SAMPLES_PER_PAGE = 100;
 
@@ -21,6 +21,8 @@ export default function Home() {
     error,
     setError,
     selectedIds,
+    setAvailableModels,
+    setCurrentModel,
   } = useStore();
 
   const [loadingMore, setLoadingMore] = useState(false);
@@ -32,16 +34,19 @@ export default function Home() {
       setError(null);
 
       try {
-        // Fetch dataset info, samples, and embeddings in parallel
-        const [datasetInfo, samplesRes, embeddingsData] = await Promise.all([
+        // Fetch dataset info, samples, embeddings, and embedding models in parallel
+        const [datasetInfo, samplesRes, embeddingsData, modelsData] = await Promise.all([
           fetchDataset(),
           fetchSamples(0, SAMPLES_PER_PAGE),
           fetchEmbeddings(),
+          fetchEmbeddingModels(),
         ]);
 
         setDatasetInfo(datasetInfo);
         setSamples(samplesRes.samples, samplesRes.total);
         setEmbeddings(embeddingsData);
+        setAvailableModels(modelsData.models);
+        setCurrentModel(modelsData.current_model);
       } catch (err) {
         console.error("Failed to load data:", err);
         setError(err instanceof Error ? err.message : "Failed to load data");
