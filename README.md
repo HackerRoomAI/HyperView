@@ -24,7 +24,54 @@
 
 ## Quick Start
 
-### Installation
+### Option 1: Using DevContainer (Recommended for Development)
+
+The fastest way to get started is using the pre-configured development container that works on **macOS (ARM64/Intel)**, **Linux (AMD64)**, and **GitHub Codespaces**:
+
+**Local Development (macOS/Linux):**
+
+1. **Install Prerequisites:**
+   - [Docker Desktop](https://www.docker.com/products/docker-desktop/) - **Required for local development**
+   - [VSCode](https://code.visualstudio.com/) with the [Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
+
+2. **Verify Docker is Running:**
+   ```bash
+   # Make sure Docker Desktop is fully started before proceeding
+   docker ps
+   ```
+   If this command hangs or fails, restart Docker Desktop and wait for it to fully initialize (the whale icon should be steady, not animated).
+
+3. **Clone and Open:**
+   ```bash
+   git clone https://github.com/HackerRoomAI/HyperView.git
+   cd HyperView
+   code .
+   ```
+
+4. Click "Reopen in Container" when prompted (or use Command Palette: "Reopen in Container")
+5. Wait for setup to complete (~5-10 minutes first time)
+6. You're ready to code! All dependencies are pre-installed.
+
+**Troubleshooting (macOS/Linux):**
+
+If container build hangs or takes too long:
+- **Check Docker Desktop status**: Ensure it's running and responsive (`docker ps` should return quickly)
+- **Restart Docker Desktop**: Quit completely and restart if commands are hanging
+- **Check resources**: Allocate at least 4GB RAM in Docker Desktop settings
+- **Cancel and retry**: Press Ctrl+C and try "Reopen in Container" again after Docker stabilizes
+
+For more troubleshooting, see [.devcontainer/README.md](.devcontainer/README.md#troubleshooting).
+
+**GitHub Codespaces (No Docker Required):**
+
+1. Go to the [HyperView repository](https://github.com/HackerRoomAI/HyperView)
+2. Click **Code** → **Codespaces** → **Create codespace on main**
+3. Wait for environment to initialize (~5-10 minutes first time)
+4. Start coding in your browser or connect with VSCode!
+
+See [.devcontainer/README.md](.devcontainer/README.md) for detailed documentation.
+
+### Option 2: Local Installation
 
 ```bash
 git clone https://github.com/HackerRoomAI/HyperView.git

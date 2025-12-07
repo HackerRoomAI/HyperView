@@ -1,0 +1,147 @@
+{
+  "name": "HyperView Development",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": ".."
+  },
+
+  // Features provide additional tooling (cross-platform compatible)
+  "features": {
+    "ghcr.io/devcontainers/features/git:1": {
+      "version": "latest"
+    },
+    "ghcr.io/devcontainers/features/github-cli:1": {
+      "version": "latest"
+    },
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "22",
+      "nodeGypDependencies": true
+    }
+  },
+
+  // VSCode customizations
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        // Python development
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "charliermarsh.ruff",
+
+        // Frontend development
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "bradlc.vscode-tailwindcss",
+
+        // General development
+        "eamodio.gitlens",
+        "GitHub.copilot"
+      ],
+      "settings": {
+        // Python settings
+        "python.defaultInterpreterPath": "/workspaces/HyperView/.venv/bin/python",
+        "python.terminal.activateEnvironment": true,
+        "python.analysis.typeCheckingMode": "basic",
+        "python.analysis.autoImportCompletions": true,
+
+        // Ruff (Python linting and formatting)
+        "[python]": {
+          "editor.defaultFormatter": "charliermarsh.ruff",
+          "editor.formatOnSave": true,
+          "editor.codeActionsOnSave": {
+            "source.fixAll": "explicit",
+            "source.organizeImports": "explicit"
+          }
+        },
+
+        // TypeScript/JavaScript settings
+        "[typescript]": {
+          "editor.defaultFormatter": "esbenp.prettier-vscode",
+          "editor.formatOnSave": true
+        },
+        "[typescriptreact]": {
+          "editor.defaultFormatter": "esbenp.prettier-vscode",
+          "editor.formatOnSave": true
+        },
+        "[javascript]": {
+          "editor.defaultFormatter": "esbenp.prettier-vscode",
+          "editor.formatOnSave": true
+        },
+        "[json]": {
+          "editor.defaultFormatter": "esbenp.prettier-vscode"
+        },
+
+        // Terminal settings
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "terminal.integrated.profiles.linux": {
+          "bash": {
+            "path": "/bin/bash",
+            "icon": "terminal-bash"
+          }
+        },
+
+        // File associations
+        "files.associations": {
+          "*.md": "markdown",
+          "*.yaml": "yaml",
+          "*.yml": "yaml"
+        },
+
+        // Editor settings
+        "editor.rulers": [100],
+        "editor.tabSize": 4,
+        "[typescript]": {
+          "editor.tabSize": 2
+        },
+        "[typescriptreact]": {
+          "editor.tabSize": 2
+        },
+        "[javascript]": {
+          "editor.tabSize": 2
+        },
+        "[json]": {
+          "editor.tabSize": 2
+        },
+
+        // Git settings
+        "git.autofetch": true,
+        "git.enableSmartCommit": true
+      }
+    }
+  },
+
+  // Port forwarding for backend and frontend dev servers
+  "forwardPorts": [5151, 3000],
+  "portsAttributes": {
+    "5151": {
+      "label": "HyperView Backend (FastAPI)",
+      "onAutoForward": "notify",
+      "protocol": "http"
+    },
+    "3000": {
+      "label": "Frontend Dev Server (Next.js)",
+      "onAutoForward": "notify",
+      "protocol": "http"
+    }
+  },
+
+  // Container environment variables
+  "containerEnv": {
+    "PYTHONUNBUFFERED": "1",
+    "UV_CACHE_DIR": "/workspaces/HyperView/.cache/uv"
+  },
+
+  // Lifecycle scripts
+  "postCreateCommand": "bash .devcontainer/postCreateCommand.sh",
+
+  // Use 'forwardPorts' to make a list of ports inside the container available locally
+  "remoteUser": "vscode",
+
+  // Uncomment to connect as root instead (not recommended for security)
+  // "remoteUser": "root",
+
+  // Mount options for better performance
+  "mounts": [
+    "source=${localWorkspaceFolder}/.cache,target=/workspaces/HyperView/.cache,type=bind,consistency=cached"
+  ]
+}

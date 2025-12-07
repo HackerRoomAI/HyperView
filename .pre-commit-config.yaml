@@ -1,0 +1,70 @@
+# Pre-commit hooks for HyperView
+# Install: uv pip install pre-commit && pre-commit install
+# Run manually: pre-commit run --all-files
+
+repos:
+  # Standard pre-commit hooks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+        exclude: ^(frontend/|.*\.md$)
+      - id: end-of-file-fixer
+        exclude: ^frontend/
+      - id: check-yaml
+      - id: check-json
+        exclude: ^(frontend/package-lock\.json|\.devcontainer/.*\.json)$
+      - id: check-toml
+      - id: check-added-large-files
+        args: ['--maxkb=500']
+      - id: check-merge-conflict
+      - id: mixed-line-ending
+        args: ['--fix=lf']
+      - id: check-ast  # Validate Python syntax
+      - id: debug-statements  # Prevent debugger imports
+
+  # Python: Ruff for linting and formatting
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.8.4
+    hooks:
+      # Run linter
+      - id: ruff
+        args: [--fix, --exit-non-zero-on-fix]
+        types_or: [python, pyi]
+      # Run formatter
+      - id: ruff-format
+        types_or: [python, pyi]
+
+  # Frontend: ESLint for TypeScript/JavaScript
+  - repo: local
+    hooks:
+      - id: frontend-lint
+        name: ESLint (frontend)
+        entry: bash -c 'cd frontend && npm run lint'
+        language: system
+        files: ^frontend/.*\.(ts|tsx|js|jsx)$
+        pass_filenames: false
+        stages: [pre-commit]
+
+# Global exclusions
+exclude: |
+  (?x)^(
+    frontend/node_modules/.*|
+    frontend/.next/.*|
+    frontend/out/.*|
+    \.venv/.*|
+    .*\.egg-info/.*|
+    dist/.*|
+    build/.*|
+    \.cache/.*|
+    \.hf/.*
+  )$
+
+# Default language version
+default_language_version:
+  python: python3.10
+
+# CI configuration
+ci:
+  autoupdate_schedule: weekly
+  skip: [frontend-lint]  # Skip local hooks in CI
