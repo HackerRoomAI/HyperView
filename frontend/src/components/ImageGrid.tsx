@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useMemo } from "react";
+import { useCallback, useEffect, useRef, useMemo, useState } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { useStore } from "@/store/useStore";
 import type { Sample } from "@/types";
@@ -11,13 +11,37 @@ interface ImageGridProps {
   hasMore?: boolean;
 }
 
-const COLUMN_COUNT = 4;
 const GAP = 8;
-const ITEM_HEIGHT = 140;
+const ITEM_HEIGHT = 200;
+const MIN_ITEM_WIDTH = 200; // Minimum width for each image
 
 export function ImageGrid({ samples, onLoadMore, hasMore }: ImageGridProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const { selectedIds, isLassoSelection, toggleSelection, addToSelection, setHoveredId, hoveredId } = useStore();
+  const [columnCount, setColumnCount] = useState(4);
+
+  // Calculate column count based on container width
+  useEffect(() => {
+    const updateColumnCount = () => {
+      if (!containerRef.current) return;
+      const containerWidth = containerRef.current.clientWidth;
+      const padding = 16; // Total horizontal padding (8px each side)
+      const availableWidth = containerWidth - padding;
+
+      // Calculate how many columns can fit
+      const columns = Math.max(1, Math.floor((availableWidth + GAP) / (MIN_ITEM_WIDTH + GAP)));
+      setColumnCount(columns);
+    };
+
+    updateColumnCount();
+
+    const resizeObserver = new ResizeObserver(updateColumnCount);
+    if (containerRef.current) {
+      resizeObserver.observe(containerRef.current);
+    }
+
+    return () => resizeObserver.disconnect();
+  }, []);
 
   // Filter samples based on selection
   const filteredSamples = useMemo(() => {
@@ -31,16 +55,16 @@ export function ImageGrid({ samples, onLoadMore, hasMore }: ImageGridProps) {
   }, [samples, selectedIds, isLassoSelection]);
 
   // Calculate rows from filtered samples
-  const rowCount = Math.ceil(filteredSamples.length / COLUMN_COUNT);
+  const rowCount = Math.ceil(filteredSamples.length / columnCount);
 
   // Create stable row keys based on the sample IDs in each row
   const getRowKey = useCallback(
     (index: number) => {
-      const startIndex = index * COLUMN_COUNT;
-      const rowSamples = filteredSamples.slice(startIndex, startIndex + COLUMN_COUNT);
+      const startIndex = index * columnCount;
+      const rowSamples = filteredSamples.slice(startIndex, startIndex + columnCount);
       return rowSamples.map((s) => s.id).join("-") || `row-${index}`;
     },
-    [filteredSamples]
+    [filteredSamples, columnCount]
   );
 
   const virtualizer = useVirtualizer({
@@ -103,9 +127,9 @@ export function ImageGrid({ samples, onLoadMore, hasMore }: ImageGridProps) {
   const items = virtualizer.getVirtualItems();
 
   return (
-    <div className="flex flex-col h-full bg-surface rounded-lg overflow-hidden">
+    <div className="flex flex-col h-full bg-surface overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-surface-light">
+      <div className="h-12 flex items-center justify-between px-4 border-b border-border bg-surface-light">
         <div className="flex items-center gap-2">
           <span className="text-sm font-medium">Samples</span>
           <span className="text-xs text-text-muted">
@@ -133,8 +157,8 @@ export function ImageGrid({ samples, onLoadMore, hasMore }: ImageGridProps) {
         >
           {items.map((virtualRow) => {
             const rowIndex = virtualRow.index;
-            const startIndex = rowIndex * COLUMN_COUNT;
-            const rowSamples = filteredSamples.slice(startIndex, startIndex + COLUMN_COUNT);
+            const startIndex = rowIndex * columnCount;
+            const rowSamples = filteredSamples.slice(startIndex, startIndex + columnCount);
 
             return (
               <div
@@ -217,7 +241,7 @@ export function ImageGrid({ samples, onLoadMore, hasMore }: ImageGridProps) {
                   );
                 })}
                 {/* Fill empty cells */}
-                {Array.from({ length: COLUMN_COUNT - rowSamples.length }).map((_, i) => (
+                {Array.from({ length: columnCount - rowSamples.length }).map((_, i) => (
                   <div key={`empty-${i}`} className="flex-1" />
                 ))}
               </div>
