@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useCallback, useState } from "react";
+import { useEffect, useCallback, useState, useRef } from "react";
 import { Header, ImageGrid, ScatterPanel } from "@/components";
 import { useStore } from "@/store/useStore";
 import { fetchDataset, fetchSamples, fetchEmbeddings, fetchSamplesBatch } from "@/lib/api";
@@ -24,6 +24,9 @@ export default function Home() {
   } = useStore();
 
   const [loadingMore, setLoadingMore] = useState(false);
+  const [leftPanelWidth, setLeftPanelWidth] = useState(50); // percentage
+  const containerRef = useRef<HTMLDivElement>(null);
+  const isDraggingRef = useRef(false);
 
   // Initial data load
   useEffect(() => {
@@ -90,6 +93,41 @@ export default function Home() {
     }
   }, [samples.length, totalSamples, loadingMore, appendSamples]);
 
+  // Handle resizing
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isDraggingRef.current || !containerRef.current) return;
+
+      const container = containerRef.current;
+      const containerRect = container.getBoundingClientRect();
+      const newWidth = ((e.clientX - containerRect.left) / containerRect.width) * 100;
+
+      // Constrain between 20% and 80%
+      const clampedWidth = Math.min(Math.max(newWidth, 20), 80);
+      setLeftPanelWidth(clampedWidth);
+    };
+
+    const handleMouseUp = () => {
+      isDraggingRef.current = false;
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+    };
+
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp);
+
+    return () => {
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, []);
+
+  const handleMouseDown = () => {
+    isDraggingRef.current = true;
+    document.body.style.cursor = "col-resize";
+    document.body.style.userSelect = "none";
+  };
+
   if (error) {
     return (
       <div className="h-screen flex flex-col bg-background">
@@ -126,9 +164,12 @@ export default function Home() {
       <Header />
 
       {/* Main content - two panels */}
-      <div className="flex-1 flex gap-2 p-2 overflow-hidden">
+      <div ref={containerRef} className="flex-1 flex overflow-hidden">
         {/* Left panel - Image Grid */}
-        <div className="w-1/2 min-w-0">
+        <div
+          className="min-w-0"
+          style={{ width: `calc(${leftPanelWidth}% - 2px)` }}
+        >
           <ImageGrid
             samples={samples}
             onLoadMore={loadMore}
@@ -136,8 +177,17 @@ export default function Home() {
           />
         </div>
 
+        {/* Resizable divider */}
+        <div
+          className="w-1 bg-border hover:bg-primary cursor-col-resize flex-shrink-0 transition-colors"
+          onMouseDown={handleMouseDown}
+        />
+
         {/* Right panel - Scatter Plot */}
-        <div className="w-1/2 min-w-0">
+        <div
+          className="min-w-0"
+          style={{ width: `calc(${100 - leftPanelWidth}% - 2px)` }}
+        >
           <ScatterPanel />
         </div>
       </div>

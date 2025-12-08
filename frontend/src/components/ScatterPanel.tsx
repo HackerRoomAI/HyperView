@@ -127,14 +127,15 @@ export function ScatterPanel({ className = "" }: ScatterPanelProps) {
               const selectedSampleIds = new Set(
                 points.map((idx) => currentEmbeddings.ids[idx])
               );
-              setSelectedIds(selectedSampleIds);
+              // Mark this as a lasso selection
+              useStore.getState().setSelectedIds(selectedSampleIds, true);
             }
           }
         });
 
         // Handle deselection
         scatterplot.subscribe("deselect", () => {
-          setSelectedIds(new Set<string>());
+          useStore.getState().setSelectedIds(new Set<string>(), false);
         });
 
         // Handle point hover
@@ -273,9 +274,9 @@ export function ScatterPanel({ className = "" }: ScatterPanelProps) {
     : [];
 
   return (
-    <div className={`flex flex-col h-full bg-surface rounded-lg overflow-hidden ${className}`}>
+    <div className={`flex flex-col h-full bg-surface overflow-hidden ${className}`}>
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-surface-light">
+      <div className="h-12 flex items-center justify-between px-4 border-b border-border bg-surface-light">
         <div className="flex items-center gap-4">
           <span className="text-sm font-medium">Embeddings</span>
 

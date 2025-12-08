@@ -184,7 +184,7 @@ class Dataset:
         """Compute embeddings for all samples.
 
         Args:
-            model: Embedding model to use ('clip' supported).
+            model: Embedding model to use.
             batch_size: Batch size for processing.
             show_progress: Whether to show progress bar.
         """

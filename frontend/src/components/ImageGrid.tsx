@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useMemo } from "react";
+import { useCallback, useEffect, useRef, useMemo, useState } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { useStore } from "@/store/useStore";
 import type { Sample } from "@/types";
@@ -11,43 +11,60 @@ interface ImageGridProps {
   hasMore?: boolean;
 }
 
-const COLUMN_COUNT = 4;
 const GAP = 8;
-const ITEM_HEIGHT = 140;
+const ITEM_HEIGHT = 200;
+const MIN_ITEM_WIDTH = 200; // Minimum width for each image
 
 export function ImageGrid({ samples, onLoadMore, hasMore }: ImageGridProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const { selectedIds, toggleSelection, addToSelection, setHoveredId, hoveredId } = useStore();
+  const { selectedIds, isLassoSelection, toggleSelection, addToSelection, setHoveredId, hoveredId } = useStore();
+  const [columnCount, setColumnCount] = useState(4);
 
-  // Sort samples so selected ones appear at the top
-  const sortedSamples = useMemo(() => {
-    if (selectedIds.size === 0) return samples;
+  // Calculate column count based on container width
+  useEffect(() => {
+    const updateColumnCount = () => {
+      if (!containerRef.current) return;
+      const containerWidth = containerRef.current.clientWidth;
+      const padding = 16; // Total horizontal padding (8px each side)
+      const availableWidth = containerWidth - padding;
 
-    const selected: Sample[] = [];
-    const unselected: Sample[] = [];
+      // Calculate how many columns can fit
+      const columns = Math.max(1, Math.floor((availableWidth + GAP) / (MIN_ITEM_WIDTH + GAP)));
+      setColumnCount(columns);
+    };
 
-    samples.forEach((sample) => {
-      if (selectedIds.has(sample.id)) {
-        selected.push(sample);
-      } else {
-        unselected.push(sample);
-      }
-    });
+    updateColumnCount();
 
-    return [...selected, ...unselected];
-  }, [samples, selectedIds]);
+    const resizeObserver = new ResizeObserver(updateColumnCount);
+    if (containerRef.current) {
+      resizeObserver.observe(containerRef.current);
+    }
 
-  // Calculate rows from sorted samples
-  const rowCount = Math.ceil(sortedSamples.length / COLUMN_COUNT);
+    return () => resizeObserver.disconnect();
+  }, []);
+
+  // Filter samples based on selection
+  const filteredSamples = useMemo(() => {
+    // Only filter (hide non-selected) when it's a lasso selection
+    if (isLassoSelection && selectedIds.size > 0) {
+      return samples.filter((sample) => selectedIds.has(sample.id));
+    }
+
+    // Otherwise, show all samples
+    return samples;
+  }, [samples, selectedIds, isLassoSelection]);
+
+  // Calculate rows from filtered samples
+  const rowCount = Math.ceil(filteredSamples.length / columnCount);
 
   // Create stable row keys based on the sample IDs in each row
   const getRowKey = useCallback(
     (index: number) => {
-      const startIndex = index * COLUMN_COUNT;
-      const rowSamples = sortedSamples.slice(startIndex, startIndex + COLUMN_COUNT);
+      const startIndex = index * columnCount;
+      const rowSamples = filteredSamples.slice(startIndex, startIndex + columnCount);
       return rowSamples.map((s) => s.id).join("-") || `row-${index}`;
     },
-    [sortedSamples]
+    [filteredSamples, columnCount]
   );
 
   const virtualizer = useVirtualizer({
@@ -74,29 +91,10 @@ export function ImageGrid({ samples, onLoadMore, hasMore }: ImageGridProps) {
     return () => container.removeEventListener("scroll", handleScroll);
   }, [onLoadMore, hasMore]);
 
-  // Track previous selection to detect changes
-  const prevSelectedIdsRef = useRef<Set<string>>(new Set());
-
-  // Scroll to top and reset virtualizer when selection changes
+  // Reset virtualizer measurements when selection or filter mode changes
   useEffect(() => {
-    const prevIds = prevSelectedIdsRef.current;
-    const currentIds = selectedIds;
-
-    // Check if selection actually changed (not just same set)
-    const selectionChanged =
-      prevIds.size !== currentIds.size ||
-      [...currentIds].some((id) => !prevIds.has(id));
-
-    if (selectionChanged && currentIds.size > 0) {
-      // Reset the virtualizer measurements to force re-render with new data
-      virtualizer.measure();
-      // Scroll to top using virtualizer's method
-      virtualizer.scrollToOffset(0, { behavior: "smooth" });
-    }
-
-    // Update the ref with a new Set copy
-    prevSelectedIdsRef.current = new Set(currentIds);
-  }, [selectedIds, virtualizer]);
+    virtualizer.measure();
+  }, [selectedIds, isLassoSelection, virtualizer]);
 
   const handleClick = useCallback(
     (sample: Sample, event: React.MouseEvent) => {
@@ -104,16 +102,16 @@ export function ImageGrid({ samples, onLoadMore, hasMore }: ImageGridProps) {
         // Multi-select with Cmd/Ctrl
         toggleSelection(sample.id);
       } else if (event.shiftKey && selectedIds.size > 0) {
-        // Range select with Shift
+        // Range select with Shift - use original samples array, not filtered
         const selectedArray = Array.from(selectedIds);
         const lastSelected = selectedArray[selectedArray.length - 1];
-        const lastIndex = sortedSamples.findIndex((s) => s.id === lastSelected);
-        const currentIndex = sortedSamples.findIndex((s) => s.id === sample.id);
+        const lastIndex = samples.findIndex((s) => s.id === lastSelected);
+        const currentIndex = samples.findIndex((s) => s.id === sample.id);
 
         if (lastIndex !== -1 && currentIndex !== -1) {
           const start = Math.min(lastIndex, currentIndex);
           const end = Math.max(lastIndex, currentIndex);
-          const rangeIds = sortedSamples.slice(start, end + 1).map((s) => s.id);
+          const rangeIds = samples.slice(start, end + 1).map((s) => s.id);
           addToSelection(rangeIds);
         }
       } else {
@@ -123,22 +121,29 @@ export function ImageGrid({ samples, onLoadMore, hasMore }: ImageGridProps) {
         useStore.getState().setSelectedIds(newSet);
       }
     },
-    [sortedSamples, selectedIds, toggleSelection, addToSelection]
+    [samples, selectedIds, toggleSelection, addToSelection]
   );
 
   const items = virtualizer.getVirtualItems();
 
   return (
-    <div className="flex flex-col h-full bg-surface rounded-lg overflow-hidden">
+    <div className="flex flex-col h-full bg-surface overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-surface-light">
+      <div className="h-12 flex items-center justify-between px-4 border-b border-border bg-surface-light">
         <div className="flex items-center gap-2">
           <span className="text-sm font-medium">Samples</span>
           <span className="text-xs text-text-muted">
-            {sortedSamples.length} items
-            {selectedIds.size > 0 && ` (${selectedIds.size} selected)`}
+            {selectedIds.size > 0 ? `${selectedIds.size} selected` : `${filteredSamples.length} items`}
           </span>
         </div>
+        {selectedIds.size > 0 && (
+          <button
+            onClick={() => useStore.getState().setSelectedIds(new Set())}
+            className="px-2 py-1 text-xs text-text-muted hover:text-text hover:bg-surface rounded transition-colors"
+          >
+            Clear Selection
+          </button>
+        )}
       </div>
 
       {/* Grid Container */}
@@ -152,8 +157,8 @@ export function ImageGrid({ samples, onLoadMore, hasMore }: ImageGridProps) {
         >
           {items.map((virtualRow) => {
             const rowIndex = virtualRow.index;
-            const startIndex = rowIndex * COLUMN_COUNT;
-            const rowSamples = sortedSamples.slice(startIndex, startIndex + COLUMN_COUNT);
+            const startIndex = rowIndex * columnCount;
+            const rowSamples = filteredSamples.slice(startIndex, startIndex + columnCount);
 
             return (
               <div
@@ -236,13 +241,20 @@ export function ImageGrid({ samples, onLoadMore, hasMore }: ImageGridProps) {
                   );
                 })}
                 {/* Fill empty cells */}
-                {Array.from({ length: COLUMN_COUNT - rowSamples.length }).map((_, i) => (
+                {Array.from({ length: columnCount - rowSamples.length }).map((_, i) => (
                   <div key={`empty-${i}`} className="flex-1" />
                 ))}
               </div>
             );
           })}
         </div>
+      </div>
+
+      {/* Instructions footer */}
+      <div className="px-3 py-2 text-xs text-text-muted border-t border-border bg-surface-light">
+        <span className="opacity-70">
+          Click to select • Cmd/Ctrl+click to multi-select • Shift+click for range
+        </span>
       </div>
     </div>
   );

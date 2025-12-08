@@ -25,7 +25,7 @@ class EmbeddingComputer:
         """Initialize the embedding computer.
 
         Args:
-            model: Model to use for embeddings ('clip' supported).
+            model: Model to use for embeddings.
         """
         self.model_name = model
         self._model = None
@@ -35,8 +35,7 @@ class EmbeddingComputer:
         """Lazily initialize the model."""
         if self._initialized:
             return
-
-        # Use CLIP model for image embeddings
+        # Use CLIP model by default
         self._model = EmbeddingModel.from_pretrained_hf(
             WhichModel.Clip,
             model_id="openai/clip-vit-base-patch32",

@@ -23,7 +23,8 @@ interface AppState {
 
   // Selection
   selectedIds: Set<string>;
-  setSelectedIds: (ids: Set<string>) => void;
+  isLassoSelection: boolean;
+  setSelectedIds: (ids: Set<string>, isLasso?: boolean) => void;
   toggleSelection: (id: string) => void;
   addToSelection: (ids: string[]) => void;
   clearSelection: () => void;
@@ -80,7 +81,8 @@ export const useStore = create<AppState>((set, get) => ({
 
   // Selection
   selectedIds: new Set<string>(),
-  setSelectedIds: (ids) => set({ selectedIds: ids }),
+  isLassoSelection: false,
+  setSelectedIds: (ids, isLasso = false) => set({ selectedIds: ids, isLassoSelection: isLasso }),
   toggleSelection: (id) =>
     set((state) => {
       const newSet = new Set(state.selectedIds);
@@ -89,15 +91,17 @@ export const useStore = create<AppState>((set, get) => ({
       } else {
         newSet.add(id);
       }
-      return { selectedIds: newSet };
+      // Manual selection from image grid, not lasso
+      return { selectedIds: newSet, isLassoSelection: false };
     }),
   addToSelection: (ids) =>
     set((state) => {
       const newSet = new Set(state.selectedIds);
       ids.forEach((id) => newSet.add(id));
-      return { selectedIds: newSet };
+      // Manual selection from image grid, not lasso
+      return { selectedIds: newSet, isLassoSelection: false };
     }),
-  clearSelection: () => set({ selectedIds: new Set<string>() }),
+  clearSelection: () => set({ selectedIds: new Set<string>(), isLassoSelection: false }),
 
   // Hover
   hoveredId: null,
