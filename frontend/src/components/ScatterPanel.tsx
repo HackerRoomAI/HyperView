@@ -3,7 +3,6 @@
 import { useEffect, useRef, useCallback, useState } from "react";
 import { scaleLinear } from "d3-scale";
 import { useStore } from "@/store/useStore";
-import { setEmbeddingModel, computeEmbeddings, fetchEmbeddings } from "@/lib/api";
 import type { ViewMode } from "@/types";
 
 // Color utility
@@ -45,16 +44,7 @@ export function ScatterPanel({ className = "" }: ScatterPanelProps) {
     setSelectedIds,
     hoveredId,
     setHoveredId,
-    availableModels,
-    currentModel,
-    setCurrentModel,
-    isComputingEmbeddings,
-    setIsComputingEmbeddings,
-    setEmbeddings,
   } = useStore();
-
-  const [showComputeButton, setShowComputeButton] = useState(false);
-  const [computeError, setComputeError] = useState<string | null>(null);
 
   // Sync SVG transform
   const syncSvg = useCallback((event: any) => {
@@ -278,40 +268,6 @@ export function ScatterPanel({ className = "" }: ScatterPanelProps) {
     return () => resizeObserver.disconnect();
   }, [isInitialized]);
 
-  // Handle model change
-  const handleModelChange = async (model: string) => {
-    try {
-      setComputeError(null);
-      await setEmbeddingModel(model);
-      setCurrentModel(model);
-      setShowComputeButton(true);
-    } catch (error) {
-      console.error("Failed to set embedding model:", error);
-      setComputeError(error instanceof Error ? error.message : "Failed to set model");
-    }
-  };
-
-  // Handle compute embeddings
-  const handleComputeEmbeddings = async () => {
-    try {
-      setComputeError(null);
-      setIsComputingEmbeddings(true);
-      setShowComputeButton(false);
-
-      await computeEmbeddings(32);
-
-      // Refetch embeddings after computation
-      const newEmbeddings = await fetchEmbeddings();
-      setEmbeddings(newEmbeddings);
-    } catch (error) {
-      console.error("Failed to compute embeddings:", error);
-      setComputeError(error instanceof Error ? error.message : "Failed to compute embeddings");
-      setShowComputeButton(true);
-    } finally {
-      setIsComputingEmbeddings(false);
-    }
-  };
-
   // Get unique labels for legend
   const uniqueLabels = embeddings
     ? [...new Set(embeddings.labels.map((l) => l || "undefined"))]
@@ -323,36 +279,6 @@ export function ScatterPanel({ className = "" }: ScatterPanelProps) {
       <div className="h-12 flex items-center justify-between px-4 border-b border-border bg-surface-light">
         <div className="flex items-center gap-4">
           <span className="text-sm font-medium">Embeddings</span>
-
-          {/* Embedding Model Dropdown */}
-          {availableModels && currentModel && (
-            <div className="relative">
-              <select
-                value={currentModel}
-                onChange={(e) => handleModelChange(e.target.value)}
-                disabled={isComputingEmbeddings}
-                className="px-3 py-1 text-xs bg-surface border border-border rounded-md text-text hover:bg-surface-light focus:outline-none focus:ring-2 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
-                title={availableModels[currentModel]?.description}
-              >
-                {Object.entries(availableModels).map(([key, model]) => (
-                  <option key={key} value={key}>
-                    {model.display_name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-
-          {/* Compute button */}
-          {showComputeButton && (
-            <button
-              onClick={handleComputeEmbeddings}
-              disabled={isComputingEmbeddings}
-              className="px-3 py-1 text-xs bg-primary text-white rounded-md hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              {isComputingEmbeddings ? "Computing..." : "Compute Embeddings"}
-            </button>
-          )}
 
           {/* View mode toggle */}
           <div className="flex rounded-md overflow-hidden border border-border">
@@ -383,13 +309,6 @@ export function ScatterPanel({ className = "" }: ScatterPanelProps) {
           {embeddings ? `${embeddings.ids.length} points` : "Loading..."}
         </span>
       </div>
-
-      {/* Error message */}
-      {computeError && (
-        <div className="px-4 py-2 bg-red-500/10 border-b border-red-500/20">
-          <span className="text-xs text-red-500">{computeError}</span>
-        </div>
-      )}
 
       {/* Main content area */}
       <div className="flex-1 flex">

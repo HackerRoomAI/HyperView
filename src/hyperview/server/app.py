@@ -55,28 +55,6 @@ class EmbeddingsResponse(BaseModel):
     label_colors: dict[str, str]
 
 
-class EmbeddingModelInfo(BaseModel):
-    """Response model for embedding model information."""
-
-    model_id: str
-    display_name: str
-    description: str
-
-
-class EmbeddingModelsResponse(BaseModel):
-    """Response model for available embedding models."""
-
-    models: dict[str, EmbeddingModelInfo]
-    current_model: str
-    data_type: str
-
-
-class SetEmbeddingModelRequest(BaseModel):
-    """Request model for setting embedding model."""
-
-    model: str
-
-
 def create_app(dataset: Dataset | None = None) -> FastAPI:
     """Create the FastAPI application.
 
@@ -214,57 +192,6 @@ def create_app(dataset: Dataset | None = None) -> FastAPI:
             return JSONResponse({"thumbnail": thumbnail_b64})
         except KeyError:
             raise HTTPException(status_code=404, detail=f"Sample not found: {sample_id}")
-
-    @app.get("/api/embedding-models", response_model=EmbeddingModelsResponse)
-    async def get_embedding_models():
-        """Get available embedding models for the dataset's data type."""
-        if _current_dataset is None:
-            raise HTTPException(status_code=404, detail="No dataset loaded")
-
-        # Get only models that support this dataset's data type
-        models_config = _current_dataset.get_available_embedding_models()
-        models = {
-            name: EmbeddingModelInfo(
-                model_id=config["model_id"],
-                display_name=config["display_name"],
-                description=config["description"],
-            )
-            for name, config in models_config.items()
-        }
-
-        return EmbeddingModelsResponse(
-            models=models,
-            current_model=_current_dataset.get_current_embedding_model(),
-            data_type=_current_dataset.get_data_type(),
-        )
-
-    @app.post("/api/embedding-models")
-    async def set_embedding_model(request: SetEmbeddingModelRequest):
-        """Set the embedding model and trigger re-computation."""
-        if _current_dataset is None:
-            raise HTTPException(status_code=404, detail="No dataset loaded")
-
-        try:
-            _current_dataset.set_embedding_model(request.model)
-            return {"status": "ok", "model": request.model, "message": "Model set. Call compute_embeddings to re-compute."}
-        except ValueError as e:
-            raise HTTPException(status_code=400, detail=str(e))
-
-    @app.post("/api/compute-embeddings")
-    async def compute_embeddings(batch_size: int = Query(32, ge=1, le=256)):
-        """Compute embeddings for all samples using the current model."""
-        if _current_dataset is None:
-            raise HTTPException(status_code=404, detail="No dataset loaded")
-
-        try:
-            _current_dataset.compute_embeddings(batch_size=batch_size, show_progress=True)
-            _current_dataset.compute_visualization()
-            return {
-                "status": "ok",
-                "message": f"Embeddings computed for {len(_current_dataset)} samples using {_current_dataset.get_current_embedding_model()}",
-            }
-        except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Failed to compute embeddings: {str(e)}")
 
     # Serve static frontend files
     static_dir = Path(__file__).parent / "static"

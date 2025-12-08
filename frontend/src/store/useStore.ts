@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { DatasetInfo, EmbeddingsData, EmbeddingModelInfo, Sample, ViewMode } from "@/types";
+import type { DatasetInfo, EmbeddingsData, Sample, ViewMode } from "@/types";
 
 interface AppState {
   // Dataset info
@@ -48,14 +48,6 @@ interface AppState {
   // UI state
   showLabels: boolean;
   setShowLabels: (show: boolean) => void;
-
-  // Embedding models
-  availableModels: Record<string, EmbeddingModelInfo> | null;
-  currentModel: string | null;
-  setAvailableModels: (models: Record<string, EmbeddingModelInfo>) => void;
-  setCurrentModel: (model: string) => void;
-  isComputingEmbeddings: boolean;
-  setIsComputingEmbeddings: (computing: boolean) => void;
 }
 
 export const useStore = create<AppState>((set, get) => ({
@@ -130,12 +122,4 @@ export const useStore = create<AppState>((set, get) => ({
   // UI state
   showLabels: true,
   setShowLabels: (show) => set({ showLabels: show }),
-
-  // Embedding models
-  availableModels: null,
-  currentModel: null,
-  setAvailableModels: (models) => set({ availableModels: models }),
-  setCurrentModel: (model) => set({ currentModel: model }),
-  isComputingEmbeddings: false,
-  setIsComputingEmbeddings: (computing) => set({ isComputingEmbeddings: computing }),
 }));

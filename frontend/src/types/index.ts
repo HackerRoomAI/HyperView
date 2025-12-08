@@ -32,15 +32,3 @@ export interface SamplesResponse {
 }
 
 export type ViewMode = "euclidean" | "hyperbolic";
-
-export interface EmbeddingModelInfo {
-  model_id: string;
-  display_name: string;
-  description: string;
-}
-
-export interface EmbeddingModelsResponse {
-  models: Record<string, EmbeddingModelInfo>;
-  current_model: string;
-  data_type: string;
-}
