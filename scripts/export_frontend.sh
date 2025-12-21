@@ -8,12 +8,12 @@ PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 FRONTEND_DIR="$PROJECT_ROOT/frontend"
 STATIC_DIR="$PROJECT_ROOT/src/hyperview/server/static"
 
-echo "🔄 Building frontend..."
+echo "Building frontend..."
 cd "$FRONTEND_DIR"
 
 # Install dependencies if needed
 if [ ! -d "node_modules" ]; then
-    echo "📦 Installing dependencies..."
+    echo "Installing dependencies..."
     npm install
 fi
 
@@ -21,13 +21,12 @@ fi
 npm run build
 
 # Copy to Python package
-echo "📁 Copying to Python package..."
+echo "Copying build output into Python package..."
 rm -rf "$STATIC_DIR"
 mkdir -p "$STATIC_DIR"
 cp -r out/* "$STATIC_DIR/"
 
-echo "✅ Frontend exported to $STATIC_DIR"
-echo ""
+echo "Frontend exported to $STATIC_DIR"
 echo "To test, run:"
 echo "  cd $PROJECT_ROOT"
 echo "  uv run hyperview demo"
