@@ -54,7 +54,7 @@ def main():
 
 def run_demo(num_samples: int = 500, port: int = 5151):
     """Run a demo with CIFAR-100 data."""
-    print("🔄 Loading CIFAR-100 dataset...")
+    print("Loading CIFAR-100 dataset...")
     dataset = Dataset("cifar100_demo")
 
     try:
@@ -65,19 +65,19 @@ def run_demo(num_samples: int = 500, port: int = 5151):
             label_key="fine_label",
             max_samples=num_samples,
         )
-        print(f"✓ Loaded {count} samples")
+        print(f"Loaded {count} samples")
     except Exception as e:
         print(f"Failed to load HuggingFace dataset: {e}")
         print("Please ensure 'datasets' is installed: pip install datasets")
         sys.exit(1)
 
-    print("🔄 Computing embeddings...")
+    print("Computing embeddings...")
     dataset.compute_embeddings(show_progress=True)
-    print("✓ Embeddings computed")
+    print("Embeddings computed")
 
-    print("🔄 Computing visualizations...")
+    print("Computing visualizations...")
     dataset.compute_visualization()
-    print("✓ Visualizations ready")
+    print("Visualizations ready")
 
     launch(dataset, port=port)
 
@@ -86,9 +86,9 @@ def serve_dataset(filepath: str, port: int = 5151):
     """Serve a saved dataset."""
     from hyperview import Dataset, launch
 
-    print(f"🔄 Loading dataset from {filepath}...")
+    print(f"Loading dataset from {filepath}...")
     dataset = Dataset.load(filepath)
-    print(f"✓ Loaded {len(dataset)} samples")
+    print(f"Loaded {len(dataset)} samples")
 
     launch(dataset, port=port)
 

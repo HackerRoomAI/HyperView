@@ -1,6 +1,0 @@
-torch>=2.9.1
-numpy>=2.3.5
-matplotlib>=3.10.7
-geoopt>=0.5.1
-geomstats>=2.8.0
-scikit-learn>=1.7.2

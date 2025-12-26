@@ -23,7 +23,6 @@ htmlcov/
 
 # Local Context (Agent files)
 .claude/
-CLAUDE.md
 context/
 
 # Generated assets

@@ -15,6 +15,7 @@ from hyperview.core.dataset import Dataset
 
 # Global dataset reference (set by launch())
 _current_dataset: Dataset | None = None
+_current_session_id: str | None = None
 
 
 class SelectionRequest(BaseModel):
@@ -55,7 +56,29 @@ class EmbeddingsResponse(BaseModel):
     label_colors: dict[str, str]
 
 
-def create_app(dataset: Dataset | None = None) -> FastAPI:
+class SimilarSampleResponse(BaseModel):
+    """Response model for a similar sample with distance."""
+
+    id: str
+    filepath: str
+    filename: str
+    label: str | None
+    thumbnail: str | None
+    distance: float
+    metadata: dict
+    embedding_2d: list[float] | None = None
+    embedding_2d_hyperbolic: list[float] | None = None
+
+
+class SimilaritySearchResponse(BaseModel):
+    """Response model for similarity search results."""
+
+    query_id: str
+    k: int
+    results: list[SimilarSampleResponse]
+
+
+def create_app(dataset: Dataset | None = None, session_id: str | None = None) -> FastAPI:
     """Create the FastAPI application.
 
     Args:
@@ -64,9 +87,11 @@ def create_app(dataset: Dataset | None = None) -> FastAPI:
     Returns:
         FastAPI application instance.
     """
-    global _current_dataset
+    global _current_dataset, _current_session_id
     if dataset is not None:
         _current_dataset = dataset
+    if session_id is not None:
+        _current_session_id = session_id
 
     app = FastAPI(
         title="HyperView",
@@ -82,6 +107,16 @@ def create_app(dataset: Dataset | None = None) -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+
+    @app.get("/__hyperview__/health")
+    async def hyperview_health():
+        return {
+            "name": "hyperview",
+            "version": app.version,
+            "session_id": _current_session_id,
+            "dataset": _current_dataset.name if _current_dataset is not None else None,
+            "pid": os.getpid(),
+        }
 
     @app.get("/api/dataset", response_model=DatasetResponse)
     async def get_dataset_info():
@@ -106,14 +141,10 @@ def create_app(dataset: Dataset | None = None) -> FastAPI:
         if _current_dataset is None:
             raise HTTPException(status_code=404, detail="No dataset loaded")
 
-        samples = _current_dataset.samples
-
-        # Filter by label if specified
-        if label:
-            samples = [s for s in samples if s.label == label]
-
-        total = len(samples)
-        samples = samples[offset : offset + limit]
+        # Use storage backend's native pagination (avoids loading all samples)
+        samples, total = _current_dataset._storage.get_samples_paginated(
+            offset=offset, limit=limit, label=label
+        )
 
         return {
             "total": total,
@@ -146,7 +177,7 @@ def create_app(dataset: Dataset | None = None) -> FastAPI:
                 sample = _current_dataset[sample_id]
                 samples.append(sample.to_api_dict(include_thumbnail=True))
             except KeyError:
-                pass  # Skip missing samples
+                continue
 
         return {"samples": samples}
 
@@ -179,6 +210,52 @@ def create_app(dataset: Dataset | None = None) -> FastAPI:
     async def sync_selection(request: SelectionRequest):
         """Sync selection state (for future use)."""
         return {"status": "ok", "selected": request.sample_ids}
+
+    @app.get("/api/search/similar/{sample_id}", response_model=SimilaritySearchResponse)
+    async def search_similar(
+        sample_id: str,
+        k: int = Query(10, ge=1, le=100),
+        use_hyperbolic: bool = Query(False),
+    ):
+        """Return k nearest neighbors for a given sample."""
+        if _current_dataset is None:
+            raise HTTPException(status_code=404, detail="No dataset loaded")
+
+        try:
+            similar = _current_dataset.find_similar(
+                sample_id, k=k, use_hyperbolic=use_hyperbolic
+            )
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=str(e))
+        except KeyError:
+            raise HTTPException(status_code=404, detail=f"Sample not found: {sample_id}")
+
+        results = []
+        for sample, distance in similar:
+            try:
+                thumbnail = sample.get_thumbnail_base64()
+            except Exception:
+                thumbnail = None
+
+            results.append(
+                SimilarSampleResponse(
+                    id=sample.id,
+                    filepath=sample.filepath,
+                    filename=sample.filename,
+                    label=sample.label,
+                    thumbnail=thumbnail,
+                    distance=distance,
+                    metadata=sample.metadata,
+                    embedding_2d=sample.embedding_2d,
+                    embedding_2d_hyperbolic=sample.embedding_2d_hyperbolic,
+                )
+            )
+
+        return SimilaritySearchResponse(
+            query_id=sample_id,
+            k=k,
+            results=results,
+        )
 
     @app.get("/api/thumbnail/{sample_id}")
     async def get_thumbnail(sample_id: str):
