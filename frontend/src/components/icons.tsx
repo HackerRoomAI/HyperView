@@ -1,33 +1,15 @@
 "use client";
 
+import hyperviewIcon from "../assets/hyperview-icon.png";
+
 /**
- * Shared icons for HyperView UI.
- * Using inline SVGs for simplicity (no extra icon library dependency).
+ * Shared icons for HyperView UI, including the generated product mark.
  */
 
 export const HyperViewLogo = ({ className = "w-5 h-5" }: { className?: string }) => (
-  <svg viewBox="0 0 32 32" fill="none" className={className} aria-hidden="true">
-    <circle cx="16" cy="16" r="11" stroke="currentColor" strokeWidth="1.75" />
-    <path
-      d="M11.3 6.25C14.1 11.9 14.1 20.1 11.3 25.75"
-      stroke="currentColor"
-      strokeWidth="1.9"
-      strokeLinecap="round"
-    />
-    <path
-      d="M20.7 6.25C17.9 11.9 17.9 20.1 20.7 25.75"
-      stroke="currentColor"
-      strokeWidth="1.9"
-      strokeLinecap="round"
-    />
-    <path
-      d="M5.4 16H26.6"
-      stroke="currentColor"
-      strokeWidth="1.6"
-      strokeLinecap="round"
-    />
-    <circle cx="16" cy="16" r="2.15" fill="currentColor" />
-  </svg>
+  // Native images preserve the relative asset URL in standalone Static Spaces.
+  // eslint-disable-next-line @next/next/no-img-element
+  <img src={hyperviewIcon.src} width={20} height={20} className={className} alt="HyperView" draggable={false} />
 );
 
 export const CheckIcon = () => (

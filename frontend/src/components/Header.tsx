@@ -157,7 +157,7 @@ export function Header() {
         <div className="flex items-center gap-2">
           {/* Logo */}
           <div className="flex items-center justify-center h-6 w-6 text-primary">
-            <HyperViewLogo className="h-3.5 w-3.5" />
+            <HyperViewLogo className="h-5 w-5" />
           </div>
 
           {/* View dropdown */}
